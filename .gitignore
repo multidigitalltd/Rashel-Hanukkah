@@ -1,0 +1,26 @@
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Dependencies: development tools only, installed from the lock files
+node_modules/
+vendor/
+
+# Local WordPress installs used for testing the theme
+wordpress/
+wp-content/
+*.sql
+*.sqlite
+
+# Build output is committed on purpose (*.min.css, *.min.js) so the theme
+# works the moment it is unzipped, without a build step on the server.
+# The upload package is not: rebuild it with bin/build-zip.sh.
+dist/
+
+# PHPUnit and tool caches
+.phpunit.result.cache
+.phpunit.cache/
+coverage/
