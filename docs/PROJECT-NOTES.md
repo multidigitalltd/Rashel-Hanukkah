@@ -8,7 +8,7 @@ The Hanukkah campaign landing page of RASHEL Digital School: one long right-to-l
 
 ## Risk level
 
-**Level 1 (proposed, to be confirmed by the owner).** Public marketing content and one lead form that stores a name, a phone number and an optional email address. No accounts, no payments on this site (Cardcom hosts the payment pages), no sensitive categories of data.
+**Level 1.** Decided by the owner on 2026-11-23. Public marketing content and one lead form that stores a name, a phone number and an optional email address. No accounts, no payments on this site (Cardcom hosts the payment pages), no sensitive categories of data.
 
 ## Stack
 
