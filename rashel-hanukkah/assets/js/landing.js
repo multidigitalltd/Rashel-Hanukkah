@@ -6,8 +6,9 @@
  * shows the time the page was rendered.
  *
  * Motion (the pinned questions, the reveals, the heading effect) runs only
- * when <html> carries "rsh-motion", which the inline boot script sets when
- * neither the system nor the accessibility toolbar asked for reduced motion.
+ * while <html> carries "rsh-motion". The inline boot script sets it when
+ * neither the system nor the accessibility toolbar asked for reduced motion,
+ * and the toolbar's "stop animations" removes it on the spot.
  *
  * Expects window.rshLanding = { deadline } (Unix milliseconds).
  */
@@ -15,8 +16,17 @@
 	'use strict';
 
 	var root = document.documentElement;
-	var motion = root.classList.contains('rsh-motion');
 	var config = window.rshLanding || {};
+
+	/**
+	 * May the page move right now? Read every time, because the accessibility
+	 * toolbar can switch motion off and on while the page is open.
+	 *
+	 * @return {boolean}
+	 */
+	function motion() {
+		return root.classList.contains('rsh-motion');
+	}
 
 	/**
 	 * Run a function for every element that matches a selector.
@@ -155,7 +165,7 @@
 	/* Hook: pinned questions and photo parallax                           */
 	/* ------------------------------------------------------------------ */
 
-	var hook = motion ? document.querySelector('[data-rsh-hook]') : null;
+	var hook = document.querySelector('[data-rsh-hook]');
 	var questions = hook ? Array.prototype.slice.call(hook.querySelectorAll('[data-rsh-q]')) : [];
 	var photos = hook ? Array.prototype.slice.call(hook.querySelectorAll('[data-rsh-step]')) : [];
 	var stage = hook ? hook.querySelector('.rsh-hook__stage') : null;
@@ -163,7 +173,8 @@
 	var lastProgress = -1;
 
 	function updateHook() {
-		if (!hook) {
+		// Without motion the questions are stacked by the stylesheet and nothing follows the scroll.
+		if (!hook || !motion()) {
 			return;
 		}
 
@@ -223,10 +234,7 @@
 	/* Reveals and the heading effect                                      */
 	/* ------------------------------------------------------------------ */
 
-	if (!motion) {
-		return;
-	}
-
+	// Observed even while motion is off, so content is already revealed if the visitor turns it back on.
 	if (!('IntersectionObserver' in window)) {
 		each('[data-rsh-reveal]', function (node) {
 			node.classList.add('is-in');

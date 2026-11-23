@@ -152,6 +152,18 @@ function postLead(request, fields) {
 	check('text size goes up', (await page.textContent('[data-rsh-a11y-value]')).trim() === '110%');
 	await page.keyboard.press('Escape');
 	check('Escape closes it and returns focus to the launcher', !(await page.isVisible('#rsh-a11y-panel')) && await page.evaluate(() => document.activeElement.hasAttribute('data-rsh-a11y-launch')));
+	await page.evaluate(() => window.scrollTo(0, 0));
+	await page.click('[data-rsh-a11y-launch]');
+	await page.click('[data-rsh-a11y-toggle="nomotion"]');
+	await page.keyboard.press('Escape');
+	await page.evaluate(() => window.scrollTo(0, 700));
+	await page.waitForTimeout(300);
+	check('"stop animations" drops the page to its static layout at once: nothing pinned, no photos following the scroll', await page.evaluate(() => !document.documentElement.classList.contains('rsh-motion') && getComputedStyle(document.querySelector('.rsh-hook__stage')).position !== 'sticky' && getComputedStyle(document.querySelector('.rsh-hook__img')).display === 'none' && getComputedStyle(document.querySelector('.rsh-ticker__track')).animationName === 'none') && (await page.locator('[data-rsh-q]:visible').count()) === 3);
+	check('and everything that was waiting to be revealed is visible', await page.evaluate(() => Array.from(document.querySelectorAll('[data-rsh-reveal], .rsh-h1__w')).every((node) => getComputedStyle(node).opacity === '1')));
+	await page.click('[data-rsh-a11y-launch]');
+	await page.click('[data-rsh-a11y-toggle="nomotion"]');
+	await page.keyboard.press('Escape');
+	check('turning it off brings motion back', await page.evaluate(() => document.documentElement.classList.contains('rsh-motion') && getComputedStyle(document.querySelector('.rsh-hook__stage')).position === 'sticky'));
 	await page.reload({ waitUntil: 'load' });
 	check('preferences survive a reload', await page.evaluate(() => document.documentElement.classList.contains('rsh-a11y-contrast')));
 	await page.click('[data-rsh-a11y-launch]');

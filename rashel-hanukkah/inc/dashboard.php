@@ -358,6 +358,9 @@ function rsh_dashboard_secret( $name ) {
 function rsh_dashboard_connections() {
 	?>
 	<h2><?php esc_html_e( 'לידים', 'rashel-hanukkah' ); ?></h2>
+	<?php if ( '' !== rsh_lead_webhook_url() && ! rsh_lead_webhook_ready() ) : ?>
+		<div class="notice notice-warning inline" role="alert"><p><?php esc_html_e( 'הוגדרה כתובת Webhook בלי מפתח חתימה תקין, ולכן לידים לא יישלחו ל-CRM החיצוני. הם נשמרים כאן כרגיל. כדי להפעיל את השליחה יש להזין מפתח חתימה.', 'rashel-hanukkah' ); ?></p></div>
+	<?php endif; ?>
 	<p>
 		<?php esc_html_e( 'כל פנייה נשמרת קודם כול במסך "לידים", גם אם המייל או החיבור החיצוני נכשלו.', 'rashel-hanukkah' ); ?>
 		<a href="<?php echo esc_url( admin_url( 'edit.php?post_type=rsh_lead' ) ); ?>"><?php esc_html_e( 'למסך הלידים', 'rashel-hanukkah' ); ?></a>
@@ -404,9 +407,9 @@ function rsh_dashboard_connections() {
 					'dir'   => 'ltr',
 				)
 			),
-			__( 'לא חובה. כתובת https שאליה נשלח כל ליד כ-JSON, עם ניסיונות חוזרים במקרה של כשל.', 'rashel-hanukkah' )
+			__( 'לא חובה. כתובת https שאליה נשלח כל ליד כ-JSON, עם ניסיונות חוזרים במקרה של כשל. נדרש גם מפתח חתימה.', 'rashel-hanukkah' )
 		);
-		rsh_dashboard_row( 'rsh-webhook_secret', __( 'מפתח חתימה ל-Webhook', 'rashel-hanukkah' ), rsh_dashboard_secret( 'webhook_secret' ), __( 'כשמוגדר, כל שליחה נחתמת ב-HMAC-SHA256 בכותרת X-Rashel-Signature, כדי שהצד המקבל יוכל לאמת אותה.', 'rashel-hanukkah' ) );
+		rsh_dashboard_row( 'rsh-webhook_secret', __( 'מפתח חתימה ל-Webhook', 'rashel-hanukkah' ), rsh_dashboard_secret( 'webhook_secret' ), __( 'חובה כשהוגדרה כתובת. כל שליחה נחתמת ב-HMAC-SHA256 בכותרת X-Rashel-Signature, כדי שהצד המקבל יוכל לאמת אותה. בלי מפתח תקין לידים לא נשלחים החוצה.', 'rashel-hanukkah' ) );
 		?>
 	</table>
 
@@ -557,7 +560,7 @@ function rsh_validate_connections( array $input ) {
 
 	$webhook = $text( 'webhook_url' );
 	$clean   = esc_url_raw( $webhook, array( 'https' ) );
-	if ( '' === $webhook || ( '' !== $clean && wp_http_validate_url( $clean ) ) ) {
+	if ( '' === $webhook || rsh_public_host( (string) wp_parse_url( $clean, PHP_URL_HOST ) ) ) {
 		$values['webhook_url'] = '' === $webhook ? '' : $clean;
 	} else {
 		$refused = true;

@@ -133,6 +133,56 @@ final class LogicTest extends TestCase {
 	}
 
 	/**
+	 * A site in a subdirectory does not get that directory twice.
+	 */
+	public function test_request_url(): void {
+		$this->assertSame( 'https://example.test/campaign/hanukkah/', rsh_request_url( 'https://example.test/campaign', '/campaign/hanukkah/' ) );
+		$this->assertSame( 'https://example.test/campaign/', rsh_request_url( 'https://example.test/campaign/', '/campaign/' ) );
+		$this->assertSame( 'https://example.test/', rsh_request_url( 'https://example.test', '/' ) );
+		$this->assertSame( 'https://example.test/', rsh_request_url( 'https://example.test', '' ) );
+		$this->assertSame( 'http://127.0.0.1:8089/landing/', rsh_request_url( 'http://127.0.0.1:8089', '/landing/' ) );
+		// A path can never move the address to another host.
+		$this->assertSame( 'https://example.test/evil.test/x', rsh_request_url( 'https://example.test', '//evil.test/x' ) );
+		$this->assertSame( '', rsh_request_url( 'not a url', '/' ) );
+	}
+
+	/**
+	 * Only a dotted public DNS name passes as a webhook host.
+	 *
+	 * @dataProvider hosts
+	 *
+	 * @param string $host   Hostname.
+	 * @param bool   $public Expected verdict.
+	 */
+	public function test_public_host( string $host, bool $public ): void {
+		$this->assertSame( $public, rsh_public_host( $host ) );
+	}
+
+	/**
+	 * Hosts for test_public_host().
+	 *
+	 * @return array<string, array{0:string, 1:bool}>
+	 */
+	public static function hosts(): array {
+		return array(
+			'domain'          => array( 'crm.example.co.il', true ),
+			'upper case'      => array( 'CRM.Example.com', true ),
+			'ipv4'            => array( '127.0.0.1', false ),
+			'private ipv4'    => array( '10.0.0.5', false ),
+			'metadata ipv4'   => array( '169.254.169.254', false ),
+			'ipv6'            => array( '[::1]', false ),
+			'localhost'       => array( 'localhost', false ),
+			'sub.localhost'   => array( 'app.localhost', false ),
+			'mdns'            => array( 'printer.local', false ),
+			'internal'        => array( 'db.internal', false ),
+			'single label'    => array( 'intranet', false ),
+			'empty'           => array( '', false ),
+			'trailing hyphen' => array( 'bad-.example.com', false ),
+			'with path'       => array( 'example.com/x', false ),
+		);
+	}
+
+	/**
 	 * The countdown splits the time left and stops at zero.
 	 */
 	public function test_countdown_parts(): void {

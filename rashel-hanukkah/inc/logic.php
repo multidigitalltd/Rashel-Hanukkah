@@ -116,6 +116,49 @@ function rsh_parse_marked_text( string $text ): array {
 }
 
 /**
+ * The address of a request on this site: the home URL's origin and the
+ * request's own path.
+ *
+ * The request path already contains any subdirectory the site lives in, so it
+ * is joined to the origin, never to the home URL itself.
+ *
+ * @param string $home Home URL, with or without a subdirectory.
+ * @param string $path Request path, as the server received it.
+ * @return string Empty when the home URL has no host.
+ */
+function rsh_request_url( string $home, string $path ): string {
+	$parts = parse_url( $home ); // phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url -- Pure function without WordPress; the input is the site's own home URL.
+
+	if ( ! is_array( $parts ) || empty( $parts['host'] ) ) {
+		return '';
+	}
+
+	$origin = ( $parts['scheme'] ?? 'https' ) . '://' . $parts['host'] . ( isset( $parts['port'] ) ? ':' . $parts['port'] : '' );
+
+	return $origin . '/' . ltrim( $path, '/' );
+}
+
+/**
+ * Is this the name of a public host? A dotted DNS name: not an IP address,
+ * not "localhost", not a single label.
+ *
+ * A first check when an address is saved. The request itself still goes
+ * through WordPress's safe HTTP API, which resolves the name and refuses
+ * private and loopback addresses at send time.
+ *
+ * @param string $host Hostname.
+ * @return bool
+ */
+function rsh_public_host( string $host ): bool {
+	$host = strtolower( $host );
+
+	return 1 === preg_match( '/^(?=.{4,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,61}[a-z0-9]$/', $host )
+		&& ! str_ends_with( $host, '.localhost' )
+		&& ! str_ends_with( $host, '.local' )
+		&& ! str_ends_with( $host, '.internal' );
+}
+
+/**
  * Time left until the deadline as zero-padded days, hours, minutes, seconds.
  *
  * @param int $deadline Deadline, Unix seconds.

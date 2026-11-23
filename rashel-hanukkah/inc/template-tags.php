@@ -41,7 +41,7 @@ function rsh_current_url() {
 	$path = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '/';
 	$path = (string) wp_parse_url( $path, PHP_URL_PATH );
 
-	return home_url( '' === $path ? '/' : $path );
+	return rsh_request_url( home_url(), $path );
 }
 
 /**

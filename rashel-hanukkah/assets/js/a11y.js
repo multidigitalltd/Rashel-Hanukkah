@@ -73,6 +73,12 @@
 			root.classList.toggle('rsh-a11y-' + flag, on);
 		});
 
+		// "Stop animations" is the same request as the system's reduced-motion
+		// setting: the page drops to its static layout, not just its transitions.
+		var calm = state.flags.indexOf('nomotion') !== -1 ||
+			(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+		root.classList.toggle('rsh-motion', !calm);
+
 		if (valueOut) {
 			valueOut.textContent = Math.round(state.scale * 100) + '%';
 		}

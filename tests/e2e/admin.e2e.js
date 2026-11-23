@@ -78,6 +78,15 @@ async function frontHtml(browser) {
 	check('an emptied field goes back to the design wording', (await frontHtml(browser)).includes('אני רוצה לנצל את ההזדמנות!') && (await page.inputValue('#rsh-cta')) === 'אני רוצה לנצל את ההזדמנות!');
 
 	await page.goto(DASHBOARD + '&tab=connections', { waitUntil: 'domcontentloaded' });
+	await page.fill('#rsh-webhook_url', 'https://crm.example.test/hook');
+	await save(page);
+	check('a webhook address without a signing key warns that leads will not be sent unsigned', (await page.locator('.rsh-admin .notice-warning.inline').count()) === 1 && (await page.inputValue('#rsh-webhook_url')) === 'https://crm.example.test/hook');
+	await page.fill('#rsh-webhook_secret', 'e2e-webhook-signing-key');
+	await save(page);
+	check('and the warning goes once a key is saved', (await page.locator('.rsh-admin .notice-warning.inline').count()) === 0);
+	await page.fill('#rsh-webhook_url', '');
+	await page.check('input[name="rsh[webhook_secret_clear]"]');
+	await save(page);
 	await page.fill('#rsh-turnstile_secret', SECRET);
 	await page.fill('#rsh-webhook_url', 'http://insecure.example.test/hook');
 	await save(page);

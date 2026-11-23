@@ -246,10 +246,11 @@ function rsh_lead_crm_box( $post ) {
 	$status = (string) get_post_meta( $post->ID, 'rsh_status', true );
 	$notes  = (string) get_post_meta( $post->ID, 'rsh_notes', true );
 	$states = array(
-		'sent'   => __( 'נשלח', 'rashel-hanukkah' ),
-		'failed' => __( 'נכשל, ינוסה שוב', 'rashel-hanukkah' ),
-		'gave'   => __( 'נכשל סופית', 'rashel-hanukkah' ),
-		''       => __( 'לא מוגדר', 'rashel-hanukkah' ),
+		'sent'     => __( 'נשלח', 'rashel-hanukkah' ),
+		'failed'   => __( 'נכשל, ינוסה שוב', 'rashel-hanukkah' ),
+		'gave'     => __( 'נכשל סופית', 'rashel-hanukkah' ),
+		'nosecret' => __( 'לא נשלח: חסר מפתח חתימה', 'rashel-hanukkah' ),
+		''         => __( 'לא מוגדר', 'rashel-hanukkah' ),
 	);
 
 	wp_nonce_field( 'rsh_lead_crm_' . $post->ID, 'rsh_lead_crm_nonce' );
@@ -541,10 +542,19 @@ add_action( 'switch_theme', 'rsh_lead_unschedule' );
 function rsh_lead_dispatch( $lead_id ) {
 	rsh_lead_notify( $lead_id );
 
-	if ( '' !== rsh_lead_webhook_url() ) {
-		// Out of the request: the visitor does not wait for somebody else's server.
-		wp_schedule_single_event( time(), 'rsh_lead_webhook', array( (int) $lead_id ) );
+	if ( '' === rsh_lead_webhook_url() ) {
+		return;
 	}
+
+	if ( ! rsh_lead_webhook_ready() ) {
+		// Never sent unsigned: the lead waits in the dashboard until a signing key is set.
+		update_post_meta( $lead_id, 'rsh_hook_state', 'nosecret' );
+
+		return;
+	}
+
+	// Out of the request: the visitor does not wait for somebody else's server.
+	wp_schedule_single_event( time(), 'rsh_lead_webhook', array( (int) $lead_id ) );
 }
 
 /**
@@ -627,6 +637,17 @@ function rsh_lead_webhook_url() {
 }
 
 /**
+ * Can leads be delivered? An address and a signing key that opens. Without a
+ * usable key nothing is sent: an unsigned request would carry personal data
+ * the receiver cannot authenticate (standard 4.10).
+ *
+ * @return bool
+ */
+function rsh_lead_webhook_ready() {
+	return '' !== rsh_lead_webhook_url() && '' !== rsh_secret( 'webhook_secret' );
+}
+
+/**
  * The JSON body sent to the external CRM.
  *
  * @param int $lead_id Lead.
@@ -650,7 +671,7 @@ function rsh_lead_webhook_body( $lead_id ) {
 }
 
 /**
- * Deliver a lead to the external CRM, signed (standard 4.10, 15.2.7).
+ * Deliver a lead to the external CRM, always signed (standard 4.10, 15.2.7).
  *
  * @param int $lead_id Lead.
  * @return bool Delivered.
@@ -662,13 +683,21 @@ function rsh_lead_webhook( $lead_id ) {
 		return false;
 	}
 
-	$body    = rsh_lead_webhook_body( $lead_id );
-	$headers = array( 'Content-Type' => 'application/json; charset=utf-8' );
-	$secret  = rsh_secret( 'webhook_secret' );
+	$secret = rsh_secret( 'webhook_secret' );
 
-	if ( '' !== $secret ) {
-		$headers['X-Rashel-Signature'] = rsh_sign_payload( $body, time(), $secret );
+	// The key can disappear between scheduling and sending (cleared, or the salts changed).
+	if ( '' === $secret ) {
+		update_post_meta( $lead_id, 'rsh_hook_state', 'nosecret' );
+		error_log( 'rashel-hanukkah: lead webhook not sent, signing key missing or unreadable' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Operational log line, no personal data.
+
+		return false;
 	}
+
+	$body    = rsh_lead_webhook_body( $lead_id );
+	$headers = array(
+		'Content-Type'       => 'application/json; charset=utf-8',
+		'X-Rashel-Signature' => rsh_sign_payload( $body, time(), $secret ),
+	);
 
 	$response = wp_safe_remote_post(
 		$url,
