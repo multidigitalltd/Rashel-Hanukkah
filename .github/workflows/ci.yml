@@ -1,0 +1,136 @@
+# Continuous integration: standard section 10.3.
+# Every job must pass before a pull request can merge.
+# Actions are pinned to commit SHAs (standard 4.12.4).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    # Daily dependency audit of the default branch (standard 4.12.5).
+    - cron: '23 3 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  php:
+    name: Lint, static analysis, unit tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: shivammathur/setup-php@bf6b4fbd49ca58e4608c9c89fba0b8d90bd2a39f # 2.35.5
+        with:
+          php-version: '8.3'
+          extensions: sodium, mbstring
+          coverage: pcov
+          tools: composer:v2
+
+      - name: Install from the lock file
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Dependency audit
+        run: composer audit --locked
+
+      - name: Coding standards (PHPCS, WordPress-Extra/Docs, PHPCompatibilityWP)
+        run: composer lint
+
+      - name: Static analysis (PHPStan level 8)
+        run: composer analyse
+
+      - name: Unit tests
+        run: vendor/bin/phpunit --coverage-text --colors=never
+
+      - name: Minified assets are up to date
+        run: |
+          php bin/build-assets.php
+          git diff --exit-code -- '*.min.css' '*.min.js'
+
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+      - uses: trufflesecurity/trufflehog@eafb8c5f6a06175141c27f17bcc17941853d0047 # v3.90.0
+        with:
+          # The action already passes --fail; the image is pinned to the same release.
+          version: 3.90.0
+          extra_args: --results=verified,unknown
+
+  sast:
+    name: Static application security testing
+    runs-on: ubuntu-24.04
+    container:
+      image: semgrep/semgrep:1.131.0
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Semgrep (PHP, JavaScript and OWASP Top 10 rules)
+        run: semgrep scan --config p/php --config p/javascript --config p/owasp-top-ten --error --metrics=off --exclude vendor --exclude docs --exclude node_modules
+
+  e2e:
+    name: End-to-end (Chromium, axe, Lighthouse)
+    runs-on: ubuntu-24.04
+    needs: php
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: shivammathur/setup-php@bf6b4fbd49ca58e4608c9c89fba0b8d90bd2a39f # 2.35.5
+        with:
+          php-version: '8.3'
+          extensions: sodium, mbstring, pdo_sqlite, sqlite3, gd
+          coverage: none
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+
+      - name: Install from the lock file
+        working-directory: tests/e2e
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npx playwright install --with-deps chromium
+
+      - name: Dependency audit
+        working-directory: tests/e2e
+        run: npm audit --audit-level=high
+
+      - name: Throwaway WordPress on SQLite with the theme activated
+        run: bash tests/e2e/setup.sh "$RUNNER_TEMP/e2e"
+
+      - name: Visitor journey (copy, courses, form, privacy, accessibility)
+        working-directory: tests/e2e
+        run: node landing.e2e.js "$RUNNER_TEMP/e2e"
+
+      - name: Dashboard, courses, leads CRM and negative authorization
+        working-directory: tests/e2e
+        run: node admin.e2e.js "$RUNNER_TEMP/e2e"
+
+      # Standard 9.1: Lighthouse on the landing page, phone and desktop. Over budget fails the job.
+      - name: Performance budget (Lighthouse)
+        working-directory: tests/e2e
+        run: node perf.e2e.js "$RUNNER_TEMP/e2e"
+
+      - name: No PHP warnings or notices
+        run: |
+          if [ -s "$RUNNER_TEMP/e2e/debug.log" ]; then
+            cat "$RUNNER_TEMP/e2e/debug.log"
+            exit 1
+          fi
+
+      - name: Screenshots and reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: e2e-results
+          path: |
+            ${{ runner.temp }}/e2e/shots
+            ${{ runner.temp }}/e2e/lighthouse-*.json
+          retention-days: 14

@@ -1,0 +1,14 @@
+includes:
+    - vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+    level: 8
+    paths:
+        - rashel-hanukkah
+    excludePaths:
+        - rashel-hanukkah/assets
+    dynamicConstantNames:
+        - RSH_TURNSTILE_SITE_KEY
+        - SCRIPT_DEBUG
+    bootstrapFiles:
+        - phpstan-bootstrap.php
