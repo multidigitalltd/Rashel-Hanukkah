@@ -1,0 +1,19 @@
+/*
+Theme Name: Rashel Hanukkah
+Theme URI: https://m-d.co.il
+Author: Multi Digital
+Author URI: https://m-d.co.il
+Description: דף נחיתה לקמפיין חנוכה של RASHEL Digital School: קורסים דיגיטליים בקולינריה ובעיצוב ב-50% הנחה. נבנה לפי תקן הפיתוח והאבטחה של Multi Digital.
+Version: 1.0.0
+Requires at least: 6.8
+Tested up to: 6.9
+Requires PHP: 8.3
+License: GNU General Public License v2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: rashel-hanukkah
+*/
+
+/*
+ * No rules here on purpose. The stylesheets live in assets/css and are loaded
+ * only where they are needed (inc/assets.php), so this file is never requested.
+ */

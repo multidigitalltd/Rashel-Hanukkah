@@ -1,0 +1,298 @@
+/**
+ * Rashel Hanukkah: consultation form enhancement.
+ *
+ * Progressive: without this file the form is a normal POST that redirects back
+ * with a message. With it, the form validates in place, submits over the REST
+ * route and swaps in the confirmation without a reload.
+ *
+ * The nonce is fetched at submit time rather than read from the markup, so a
+ * page served from a full-page cache can never submit a stale one.
+ *
+ * Expects window.rshForms = { submit, nonce, strings }.
+ */
+(function () {
+	'use strict';
+
+	var cfg = window.rshForms;
+	if (!cfg) {
+		return;
+	}
+
+	var nonce = null;
+	var nonceRequest = null;
+
+	/**
+	 * Fetch a nonce once per page, reusing the in-flight promise.
+	 *
+	 * @return {Promise<string>}
+	 */
+	function getNonce() {
+		if (nonce) {
+			return Promise.resolve(nonce);
+		}
+		if (!nonceRequest) {
+			nonceRequest = fetch(cfg.nonce, { credentials: 'same-origin' })
+				.then(function (response) { return response.json(); })
+				.then(function (data) {
+					nonce = (data && data.nonce) || '';
+					return nonce;
+				})
+				.catch(function () {
+					nonceRequest = null;
+					return '';
+				});
+		}
+		return nonceRequest;
+	}
+
+	/**
+	 * Attach or clear a field-level message, keeping aria-describedby intact.
+	 *
+	 * @param {HTMLElement} field   The input.
+	 * @param {string}      message Empty string clears the error.
+	 */
+	function setFieldError(field, message) {
+		var id = field.id + '-err';
+		var node = document.getElementById(id);
+		var described = (field.getAttribute('aria-describedby') || '')
+			.split(' ')
+			.filter(function (token) { return token && token !== id; });
+
+		if (!message) {
+			if (node) {
+				node.remove();
+			}
+			field.removeAttribute('aria-invalid');
+			if (described.length) {
+				field.setAttribute('aria-describedby', described.join(' '));
+			} else {
+				field.removeAttribute('aria-describedby');
+			}
+			return;
+		}
+
+		if (!node) {
+			node = document.createElement('span');
+			node.className = 'rsh-field-error';
+			node.id = id;
+			field.parentNode.appendChild(node);
+		}
+		node.textContent = message;
+		field.setAttribute('aria-invalid', 'true');
+		described.push(id);
+		field.setAttribute('aria-describedby', described.join(' '));
+	}
+
+	/**
+	 * Client-side mirror of the server rules. The server still decides.
+	 *
+	 * @param {HTMLFormElement} form Form element.
+	 * @return {HTMLElement|null} First invalid field, if any.
+	 */
+	function validate(form) {
+		var first = null;
+		var name = form.querySelector('[name="rsh_name"]');
+		var phone = form.querySelector('[name="rsh_phone"]');
+		var email = form.querySelector('[name="rsh_email"]');
+
+		/**
+		 * Record one field's verdict.
+		 *
+		 * @param {HTMLElement} field   The input.
+		 * @param {string}      message Error text, empty when the field is fine.
+		 */
+		function check(field, message) {
+			setFieldError(field, message);
+			if (message && !first) {
+				first = field;
+			}
+		}
+
+		if (name) {
+			check(name, name.value.trim() ? '' : cfg.strings.name);
+		}
+
+		if (phone) {
+			var digits = phone.value.replace(/[^0-9]/g, '');
+			check(phone, !digits ? cfg.strings.phone : (digits.length < 9 || digits.length > 15 ? cfg.strings.phoneBad : ''));
+		}
+
+		if (email) {
+			var value = email.value.trim();
+			check(email, value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? cfg.strings.emailBad : '');
+		}
+
+		return first;
+	}
+
+	/**
+	 * Build the confirmation that replaces the form.
+	 *
+	 * @return {HTMLElement}
+	 */
+	function successPanel() {
+		var wrap = document.createElement('div');
+		var star = document.createElement('span');
+		var title = document.createElement('p');
+		var text = document.createElement('p');
+
+		wrap.className = 'rsh-sent';
+		wrap.setAttribute('role', 'status');
+		wrap.setAttribute('tabindex', '-1');
+		star.className = 'rsh-sent__star';
+		star.setAttribute('aria-hidden', 'true');
+		star.textContent = '✦';
+		title.className = 'rsh-sent__ttl';
+		title.textContent = cfg.strings.okTitle;
+		text.className = 'rsh-sent__txt';
+		text.textContent = cfg.strings.okText;
+
+		wrap.appendChild(star);
+		wrap.appendChild(title);
+		wrap.appendChild(text);
+
+		return wrap;
+	}
+
+	/**
+	 * Show a form-level message and move focus to it.
+	 *
+	 * @param {HTMLFormElement} form    Form element.
+	 * @param {string}          message Message text.
+	 * @param {boolean}         focus   Move focus to the message.
+	 */
+	function showAlert(form, message, focus) {
+		var alert = form.querySelector('[data-rsh-alert]');
+		if (!alert) {
+			return;
+		}
+		alert.textContent = message || '';
+		if (message && focus) {
+			alert.focus();
+		}
+	}
+
+	/**
+	 * A Turnstile token is single-use: a resubmission needs a fresh one.
+	 *
+	 * @param {HTMLFormElement} form Form element.
+	 */
+	function resetCaptcha(form) {
+		var widget = form.querySelector('.cf-turnstile');
+		if (widget && window.turnstile && window.turnstile.reset) {
+			window.turnstile.reset(widget);
+		}
+	}
+
+	// Warm the nonce as soon as someone engages with the form, never on page load.
+	document.addEventListener('focusin', function warm(event) {
+		if (event.target.closest && event.target.closest('.rsh-lead-form')) {
+			document.removeEventListener('focusin', warm);
+			getNonce();
+		}
+	});
+
+	document.addEventListener('submit', function (event) {
+		var form = event.target.closest ? event.target.closest('.rsh-lead-form') : null;
+		if (!form) {
+			return;
+		}
+
+		event.preventDefault();
+
+		var button = form.querySelector('button[type=submit]');
+		var label = form.querySelector('[data-rsh-submit-label]');
+		var text = label ? label.textContent : '';
+
+		// Protect against a double submission while the request is in flight.
+		if (button && button.disabled) {
+			return;
+		}
+
+		var invalid = validate(form);
+		if (invalid) {
+			showAlert(form, cfg.strings.fix, false);
+			invalid.focus();
+			return;
+		}
+
+		/**
+		 * Switch the button between its idle and sending states.
+		 *
+		 * @param {boolean} busy Whether a request is in flight.
+		 */
+		function setBusy(busy) {
+			if (button) {
+				button.disabled = busy;
+			}
+			if (label) {
+				label.textContent = busy ? cfg.strings.sending : text;
+			}
+		}
+
+		setBusy(true);
+		showAlert(form, '', false);
+
+		getNonce().then(function (token) {
+			var body = new FormData(form);
+			body.delete('action');
+			body.set('nonce', token || body.get('nonce') || '');
+
+			return fetch(cfg.submit, { method: 'POST', credentials: 'same-origin', body: body })
+				.then(function (response) {
+					return response.json().then(function (data) {
+						return { ok: response.ok, data: data };
+					});
+				})
+				.then(function (result) {
+					if (result.ok && result.data && result.data.sent) {
+						var panel = successPanel();
+						form.replaceWith(panel);
+						panel.focus();
+						return;
+					}
+
+					// A stale nonce is fetched again on the next attempt.
+					nonce = null;
+					nonceRequest = null;
+					setBusy(false);
+					resetCaptcha(form);
+					showAlert(form, (result.data && result.data.message) || cfg.strings.error, true);
+				});
+		}).catch(function () {
+			setBusy(false);
+			resetCaptcha(form);
+			showAlert(form, cfg.strings.error, true);
+		});
+	});
+
+	// Campaign source (standard 15.2.2): utm_* of the landing page, kept for the session.
+	(function utm() {
+		var value = '';
+		try {
+			var params = new URLSearchParams(window.location.search);
+			var parts = ['utm_source', 'utm_medium', 'utm_campaign'].map(function (key) {
+				return (params.get(key) || '').slice(0, 60);
+			});
+			if (parts.join('')) {
+				value = parts.join(' / ');
+				window.sessionStorage.setItem('rsh_utm', value);
+			} else {
+				value = window.sessionStorage.getItem('rsh_utm') || '';
+			}
+		} catch (e) {
+			value = '';
+		}
+		Array.prototype.forEach.call(document.querySelectorAll('[data-rsh-utm]'), function (field) {
+			field.value = value;
+		});
+	})();
+
+	// Clear a field error as soon as the visitor starts fixing it.
+	document.addEventListener('input', function (event) {
+		var field = event.target;
+		if (field.matches && field.matches('.rsh-lead-form [aria-invalid]')) {
+			setFieldError(field, '');
+		}
+	});
+})();
