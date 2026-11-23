@@ -151,11 +151,11 @@ final class LogicTest extends TestCase {
 	 *
 	 * @dataProvider hosts
 	 *
-	 * @param string $host   Hostname.
-	 * @param bool   $public Expected verdict.
+	 * @param string $host     Hostname.
+	 * @param bool   $expected Expected verdict.
 	 */
-	public function test_public_host( string $host, bool $public ): void {
-		$this->assertSame( $public, rsh_public_host( $host ) );
+	public function test_public_host( string $host, bool $expected ): void {
+		$this->assertSame( $expected, rsh_public_host( $host ) );
 	}
 
 	/**
