@@ -34,7 +34,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 					270,
 					191,
 					array(
-						'class'   => 'rsh-logo',
+						'class'   => 'rsh-logo rsh-logo--light',
 						'alt'     => get_bloginfo( 'name' ),
 						'loading' => 'eager',
 					)

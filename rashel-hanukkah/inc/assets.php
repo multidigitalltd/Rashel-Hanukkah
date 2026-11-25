@@ -148,7 +148,6 @@ function rsh_enqueue_assets() {
 					'phoneBad' => __( 'מספר הטלפון לא נראה תקין. אפשר לבדוק אותו שוב?', 'rashel-hanukkah' ),
 					'emailBad' => __( 'כתובת האימייל לא נראית תקינה. אפשר לתקן אותה או להשאיר את השדה ריק.', 'rashel-hanukkah' ),
 					'okTitle'  => rsh_text( 'form_ok_ttl' ),
-					'okText'   => rsh_text( 'form_ok_txt' ),
 				),
 			)
 		) . ';',
@@ -165,13 +164,17 @@ add_action( 'wp_enqueue_scripts', 'rsh_enqueue_assets' );
  */
 function rsh_preload_fonts() {
 	$fonts = rsh_is_landing()
-		? array( 'afek-medium.woff2', 'afek-black.woff2' )
-		: array( 'afek-regular.woff2' );
+		? array(
+			'oscar-regular.otf' => 'font/otf',
+			'afek-black.woff2'  => 'font/woff2',
+		)
+		: array( 'afek-regular.woff2' => 'font/woff2' );
 
-	foreach ( $fonts as $font ) {
+	foreach ( $fonts as $font => $type ) {
 		printf(
-			'<link rel="preload" href="%s" as="font" type="font/woff2" crossorigin>' . "\n",
-			esc_url( rsh_asset( 'assets/fonts/' . $font ) )
+			'<link rel="preload" href="%1$s" as="font" type="%2$s" crossorigin>' . "\n",
+			esc_url( rsh_asset( 'assets/fonts/' . $font ) ),
+			esc_attr( $type )
 		);
 	}
 }

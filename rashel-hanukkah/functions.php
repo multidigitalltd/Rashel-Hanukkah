@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'RSH_VERSION', '1.0.0' );
+define( 'RSH_VERSION', '2.0.0' );
 define( 'RSH_DIR', get_template_directory() );
 define( 'RSH_URI', get_template_directory_uri() );
 

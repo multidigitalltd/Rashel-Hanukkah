@@ -33,115 +33,19 @@ function rsh_course_categories() {
 }
 
 /**
- * The course list of the approved design. Seeds the installer and stands in
- * until it has run.
+ * The course list of the approved design, with each course's syllabus. Seeds
+ * the installer and stands in until it has run.
  *
- * @return array<int, array{name:string, cat:string, tag:string, hook:string, price:int, pay:string, image:string}>
+ * @return array<int, array{name:string, cat:string, tag:string, hook:string, price:int, pay:string, image:string, syllabus:string}>
  */
 function rsh_default_courses() {
-	$pay = 'https://secure.cardcom.solutions/e/';
+	static $courses = null;
 
-	return array(
-		array(
-			'name'  => 'פינגר פוד',
-			'cat'   => 'culinary',
-			'tag'   => '',
-			'hook'  => 'מאפים, מנות מיני מעוצבות וסלטים בכוסות — כל מה שהופך בר מלוח לחוויה.',
-			'price' => 480,
-			'pay'   => $pay . '7xawlDTOCUSOSJYdwCPVmA',
-			'image' => 'finger-food',
-		),
-		array(
-			'name'  => 'בסיס הפטיסרי',
-			'cat'   => 'culinary',
-			'tag'   => '',
-			'hook'  => 'טמפרור שוקולד, מקרון צרפתי וגנאשים — היסודות שעליהם נבנה כל קינוח גורמה.',
-			'price' => 696,
-			'pay'   => $pay . 'OB6CCfcpW0M3qRmVSBqew',
-			'image' => 'patisserie',
-		),
-		array(
-			'name'  => 'קינוחי כוסות',
-			'cat'   => 'culinary',
-			'tag'   => '',
-			'hook'  => 'מרנגים, פאי לימון, פרלינה, פנקוטה תות וקרמל — קינוחים אישיים שגונבים את ההצגה.',
-			'price' => 480,
-			'pay'   => $pay . 'CMWPNMFEO0SkbraGWgDokQ',
-			'image' => 'dessert-cups',
-		),
-		array(
-			'name'  => 'קינוחים מודרניים',
-			'cat'   => 'culinary',
-			'tag'   => '',
-			'hook'  => "מוסים עשירים, טכניקות ציפוי וגלסאז', ודגשים לקינוחי בופה ברמת אירועי יוקרה.",
-			'price' => 696,
-			'pay'   => $pay . 'djIOfupgWkapxZtCp5g6xg',
-			'image' => 'modern-desserts',
-		),
-		array(
-			'name'  => 'עיצוב קאפקייקס ועוגה בבצק סוכר',
-			'cat'   => 'culinary',
-			'tag'   => '',
-			'hook'  => 'עיצוב קאפקייקס ועיטוף עוגת קומות — כולל בונוס עוגת קלקר.',
-			'price' => 696,
-			'pay'   => $pay . 'RkGvG4P84UeSHkEhIaitCw',
-			'image' => 'cupcakes',
-		),
-		array(
-			'name'  => 'עוגיות רויאל אייסינג',
-			'cat'   => 'culinary',
-			'tag'   => '',
-			'hook'  => 'הכנה, ציפוי, איור וזילוף — עוגיות ממותגות ומושלמות לכל אירוע ושליחה.',
-			'price' => 480,
-			'pay'   => $pay . 'Sv2oMRLKdEGVTX0Jbvdyw',
-			'image' => 'royal-icing',
-		),
-		array(
-			'name'  => 'עיצוב פירות',
-			'cat'   => 'culinary',
-			'tag'   => '',
-			'hook'  => 'חיתוך, עיטוף ואריזה, מגשי פירות ובר פירות שלם — כולל בונוס עיצוב על קיאק.',
-			'price' => 792,
-			'pay'   => $pay . 'reh7OMdL006XmM4r8ddXRg',
-			'image' => 'fruit-design',
-		),
-		array(
-			'name'  => 'בניית קונספט, מיתוג ודפוס',
-			'cat'   => 'design',
-			'tag'   => 'קורס #1',
-			'hook'  => 'מקונספט ואסטרטגיית מיתוג ועד דפוס ואקססוריז — כולל בונוס מיני בר ומארזים.',
-			'price' => 2160,
-			'pay'   => $pay . 'pmxvkYShaUqAlo8DVejByg',
-			'image' => 'branding',
-		),
-		array(
-			'name'  => 'עיצוב ברים',
-			'cat'   => 'design',
-			'tag'   => 'קורס #2',
-			'hook'  => 'מבר בסיסי ועד קוליסות וקירות PVC — כולל בונוס עבודה מול נגר.',
-			'price' => 3120,
-			'pay'   => $pay . 'N04tyKllp0qXlGVERwdrbw',
-			'image' => 'bars',
-		),
-		array(
-			'name'  => 'שזירת פרחים וסטיילינג לשולחן',
-			'cat'   => 'design',
-			'tag'   => 'קורס #3',
-			'hook'  => 'מבוא, שזירות קלאסיות ומודרניות, אדניות ופיסול — כולל בונוס עיצוב שולחן ביתי.',
-			'price' => 3120,
-			'pay'   => $pay . 'AOtrYuAb4E2PSiZTz1sg',
-			'image' => 'flowers',
-		),
-		array(
-			'name'  => 'עיצוב בלונים',
-			'cat'   => 'design',
-			'tag'   => 'קורס #4',
-			'hook'  => 'מרכזי שולחן, שערים וקירות בלונים ומתנות — כולל בונוס קיר צילום.',
-			'price' => 1800,
-			'pay'   => $pay . 'TR7YSnjwIECDLZAdlPumdw',
-			'image' => 'balloons',
-		),
-	);
+	if ( null === $courses ) {
+		$courses = require __DIR__ . '/course-data.php';
+	}
+
+	return $courses;
 }
 
 /**
@@ -212,7 +116,7 @@ function rsh_clean_pay_url( $url ) {
 /**
  * Every published course, in menu order, as plain arrays the templates print.
  *
- * @return array<int, array{id:int, name:string, cat:string, tag:string, hook:string, price:int, original:int, pay:string, image:string, thumb:int}>
+ * @return array<int, array{id:int, key:string, index:int, name:string, cat:string, tag:string, hook:string, price:int, original:int, pay:string, image:string, thumb:int, syllabus:string}>
  */
 function rsh_courses() {
 	$cached = get_transient( RSH_COURSES_CACHE );
@@ -243,6 +147,9 @@ function rsh_courses() {
 
 			$courses[] = array(
 				'id'       => (int) $post->ID,
+				'key'      => 'c' . (int) $post->ID,
+				'index'    => count( $courses ),
+				'syllabus' => (string) get_post_meta( $post->ID, 'rsh_syllabus', true ),
 				'name'     => (string) get_the_title( $post ),
 				'cat'      => isset( rsh_course_categories()[ $cat ] ) ? $cat : 'culinary',
 				'tag'      => (string) get_post_meta( $post->ID, 'rsh_tag', true ),
@@ -255,9 +162,11 @@ function rsh_courses() {
 			);
 		}
 	} else {
-		foreach ( rsh_default_courses() as $course ) {
+		foreach ( rsh_default_courses() as $index => $course ) {
 			$courses[] = $course + array(
 				'id'       => 0,
+				'key'      => 'd' . $index,
+				'index'    => $index,
 				'original' => 0,
 				'thumb'    => 0,
 			);
@@ -273,7 +182,7 @@ function rsh_courses() {
  * The courses of one category.
  *
  * @param string $cat Category key.
- * @return array<int, array{id:int, name:string, cat:string, tag:string, hook:string, price:int, original:int, pay:string, image:string, thumb:int}>
+ * @return array<int, array{id:int, key:string, index:int, name:string, cat:string, tag:string, hook:string, price:int, original:int, pay:string, image:string, thumb:int, syllabus:string}>
  */
 function rsh_courses_in( $cat ) {
 	return array_values( array_filter( rsh_courses(), static fn( $course ) => $course['cat'] === $cat ) );
@@ -350,6 +259,13 @@ function rsh_course_box( $post ) {
 			</td>
 		</tr>
 		<tr>
+			<th scope="row"><label for="rsh-course-syllabus"><?php esc_html_e( 'סילבוס', 'rashel-hanukkah' ); ?></label></th>
+			<td>
+				<textarea id="rsh-course-syllabus" name="rsh_syllabus" class="large-text" rows="8" maxlength="8000"><?php echo esc_textarea( $meta( 'syllabus' ) ); ?></textarea>
+				<p class="description"><?php esc_html_e( 'נפתח בחלון "לסילבוס המלא". שורה לכל שיעור: כותרת | תיאור. שורה שמתחילה בכוכבית (*) מוצגת כבונוס. בלי סילבוס, הכפתור לא מוצג בכרטיס.', 'rashel-hanukkah' ); ?></p>
+			</td>
+		</tr>
+		<tr>
 			<th scope="row"><label for="rsh-course-price"><?php esc_html_e( 'מחיר מבצע (₪)', 'rashel-hanukkah' ); ?></label></th>
 			<td>
 				<input type="number" id="rsh-course-price" name="rsh_price" class="small-text" min="0" max="1000000" step="1" value="<?php echo esc_attr( $meta( 'price' ) ); ?>">
@@ -394,6 +310,7 @@ function rsh_course_save( $post_id ) {
 	update_post_meta( $post_id, 'rsh_cat', isset( rsh_course_categories()[ $cat ] ) ? $cat : 'culinary' );
 	update_post_meta( $post_id, 'rsh_tag', mb_substr( sanitize_text_field( wp_unslash( $_POST['rsh_tag'] ?? '' ) ), 0, 40 ) );
 	update_post_meta( $post_id, 'rsh_hook', mb_substr( sanitize_textarea_field( wp_unslash( $_POST['rsh_hook'] ?? '' ) ), 0, 300 ) );
+	update_post_meta( $post_id, 'rsh_syllabus', mb_substr( sanitize_textarea_field( wp_unslash( $_POST['rsh_syllabus'] ?? '' ) ), 0, 8000 ) );
 	update_post_meta( $post_id, 'rsh_price', min( 1000000, absint( wp_unslash( $_POST['rsh_price'] ?? 0 ) ) ) );
 	update_post_meta( $post_id, 'rsh_original', min( 1000000, absint( wp_unslash( $_POST['rsh_original'] ?? 0 ) ) ) );
 	update_post_meta( $post_id, 'rsh_pay', rsh_clean_pay_url( sanitize_text_field( wp_unslash( $_POST['rsh_pay'] ?? '' ) ) ) );

@@ -1,6 +1,6 @@
 <?php
 /**
- * Arch gallery band: one photo per course, moving slowly.
+ * Gallery: one framed photo per course, moving slowly.
  *
  * Decorative: every photo appears again on its course card with the course
  * name beside it, so the band is hidden from assistive technology.
@@ -22,7 +22,7 @@ if ( ! $rsh_gallery ) {
 	<div class="rsh-gallery__track">
 		<?php for ( $rsh_half = 0; $rsh_half < 2; $rsh_half++ ) : ?>
 			<?php foreach ( $rsh_gallery as $rsh_course ) : ?>
-				<div class="rsh-gallery__item"><?php rsh_course_image( $rsh_course ); ?></div>
+				<div class="rsh-gallery__item"><div class="rsh-gallery__photo"><?php rsh_course_image( $rsh_course ); ?></div></div>
 			<?php endforeach; ?>
 		<?php endfor; ?>
 	</div>

@@ -183,6 +183,78 @@ final class LogicTest extends TestCase {
 	}
 
 	/**
+	 * A syllabus is one item per line; the last pipe separates title and text.
+	 */
+	public function test_parse_syllabus(): void {
+		$items = rsh_parse_syllabus( "מאפים | נלמד להכין\r\n\r\nשיעור 2 | בר בסיסי | תלמדי לייצר קומפוזיציה\n* בונוס | עיצוב מיני בר | נלמד לעצב\nכותרת בלבד\n | רק תיאור" );
+
+		$this->assertCount( 4, $items );
+		$this->assertSame(
+			array(
+				'number' => '01',
+				'title'  => 'מאפים',
+				'text'   => 'נלמד להכין',
+				'bonus'  => false,
+			),
+			$items[0]
+		);
+		// A title may contain a pipe: the text starts after the last one.
+		$this->assertSame( 'שיעור 2 | בר בסיסי', $items[1]['title'] );
+		$this->assertSame( 'תלמדי לייצר קומפוזיציה', $items[1]['text'] );
+		// A bonus is marked with an asterisk and shares the running number.
+		$this->assertTrue( $items[2]['bonus'] );
+		$this->assertSame( 'בונוס | עיצוב מיני בר', $items[2]['title'] );
+		$this->assertSame( '03', $items[2]['number'] );
+		// A line without a pipe is a title with no text; a line without a title is dropped.
+		$this->assertSame( 'כותרת בלבד', $items[3]['title'] );
+		$this->assertSame( '', $items[3]['text'] );
+		$this->assertSame( array(), rsh_parse_syllabus( " \n " ) );
+	}
+
+	/**
+	 * Ring text is placed character by character, with digit runs reversed.
+	 */
+	public function test_ring_chars(): void {
+		$this->assertSame(
+			array( 'מ', 'ב', 'צ', 'ע', ' ', 'ח', 'נ', 'ו', 'כ', 'ה', ' ', '✦', ' ', '%', '0', '5', ' ', 'ה', 'נ', 'ח', 'ה', ' ', '✦', ' ' ),
+			rsh_ring_chars( 'מבצע חנוכה ✦ 50% הנחה ✦ ' )
+		);
+		$this->assertSame( array( 'א', ' ', '5', '2' ), rsh_ring_chars( 'א 25' ) );
+		$this->assertSame( array(), rsh_ring_chars( '' ) );
+	}
+
+	/**
+	 * Every course accent has a shade on which small white text reaches 4.5:1.
+	 */
+	public function test_course_color(): void {
+		$luminance = static function ( string $hex ): float {
+			$channels = array_map(
+				static function ( string $pair ): float {
+					$value = hexdec( $pair ) / 255;
+
+					return $value <= 0.03928 ? $value / 12.92 : ( ( $value + 0.055 ) / 1.055 ) ** 2.4;
+				},
+				str_split( ltrim( $hex, '#' ), 2 )
+			);
+
+			return 0.2126 * $channels[0] + 0.7152 * $channels[1] + 0.0722 * $channels[2];
+		};
+
+		$this->assertSame( '#667a65', rsh_course_color( 0 )['base'] );
+		$this->assertSame( '#4f8fa3', rsh_course_color( 3 )['base'] );
+		$this->assertSame( rsh_course_color( 0 ), rsh_course_color( 6 ) );
+		$this->assertSame( rsh_course_color( 0 ), rsh_course_color( 11 ) );
+		$this->assertSame( 'olive', rsh_course_color( -4 )['name'] );
+
+		for ( $index = 0; $index < 11; $index++ ) {
+			$color = rsh_course_color( $index );
+
+			$this->assertGreaterThanOrEqual( 4.5, 1.05 / ( $luminance( $color['strong'] ) + 0.05 ), $color['name'] . ': small white text on the strong shade' );
+			$this->assertGreaterThanOrEqual( 3.0, 1.05 / ( $luminance( $color['base'] ) + 0.05 ), $color['name'] . ': large white text on the design shade' );
+		}
+	}
+
+	/**
 	 * The countdown splits the time left and stops at zero.
 	 */
 	public function test_countdown_parts(): void {

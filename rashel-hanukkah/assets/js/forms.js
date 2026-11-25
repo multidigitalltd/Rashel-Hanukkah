@@ -134,7 +134,6 @@
 		var wrap = document.createElement('div');
 		var star = document.createElement('span');
 		var title = document.createElement('p');
-		var text = document.createElement('p');
 
 		wrap.className = 'rsh-sent';
 		wrap.setAttribute('role', 'status');
@@ -144,12 +143,9 @@
 		star.textContent = '✦';
 		title.className = 'rsh-sent__ttl';
 		title.textContent = cfg.strings.okTitle;
-		text.className = 'rsh-sent__txt';
-		text.textContent = cfg.strings.okText;
 
 		wrap.appendChild(star);
 		wrap.appendChild(title);
-		wrap.appendChild(text);
 
 		return wrap;
 	}

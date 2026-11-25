@@ -139,6 +139,106 @@ function rsh_request_url( string $home, string $path ): string {
 }
 
 /**
+ * A course syllabus, parsed from its stored text.
+ *
+ * One item per line, "title | description". The description starts after the
+ * last "|", so a title may contain one ("שיעור 1 | מבוא"). A line that starts
+ * with an asterisk is a bonus. Lessons and bonuses share one running number,
+ * as in the design.
+ *
+ * @param string $text Stored syllabus.
+ * @return array<int, array{number:string, title:string, text:string, bonus:bool}>
+ */
+function rsh_parse_syllabus( string $text ): array {
+	$items = array();
+	$split = preg_split( '/\R/u', trim( $text ) );
+
+	foreach ( false === $split ? array() : $split as $line ) {
+		$line = trim( $line );
+
+		if ( '' === $line ) {
+			continue;
+		}
+
+		$bonus = str_starts_with( $line, '*' );
+		$line  = $bonus ? ltrim( substr( $line, 1 ) ) : $line;
+		$cut   = strrpos( $line, '|' );
+		$title = trim( false === $cut ? $line : substr( $line, 0, $cut ) );
+
+		if ( '' === $title ) {
+			continue;
+		}
+
+		$items[] = array(
+			'number' => str_pad( (string) ( count( $items ) + 1 ), 2, '0', STR_PAD_LEFT ),
+			'title'  => $title,
+			'text'   => false === $cut ? '' : trim( substr( $line, $cut + 1 ) ),
+			'bonus'  => $bonus,
+		);
+	}
+
+	return $items;
+}
+
+/**
+ * The characters of a text that runs around a circle, in placing order.
+ *
+ * Each character gets its own slot on the ring. Hebrew is placed in logical
+ * order and reads correctly; a run of digits (with its percent sign) must be
+ * placed reversed, or "50%" would read backwards.
+ *
+ * @param string $text Ring text.
+ * @return string[] One entry per slot.
+ */
+function rsh_ring_chars( string $text ): array {
+	$chars = preg_split( '//u', $text, -1, PREG_SPLIT_NO_EMPTY );
+	$chars = false === $chars ? array() : $chars;
+	$out   = array();
+	$run   = array();
+
+	foreach ( $chars as $char ) {
+		if ( 1 === preg_match( '/^[0-9%.,]$/', $char ) ) {
+			array_unshift( $run, $char );
+			continue;
+		}
+
+		$out = array_merge( $out, $run, array( $char ) );
+		$run = array();
+	}
+
+	return array_merge( $out, $run );
+}
+
+/**
+ * The accent colour of a course card, by its place in the menu.
+ *
+ * The design cycles eleven accents. Each has a second, slightly deeper shade
+ * for small white text and thin outlines, where the first would fall short of
+ * the 4.5:1 contrast the standard requires.
+ *
+ * @param int $index Zero-based place of the course among all courses.
+ * @return array{name:string, base:string, strong:string}
+ */
+function rsh_course_color( int $index ): array {
+	$colors = array(
+		'olive'   => array( '#667a65', '#667a65' ),
+		'mustard' => array( '#896c3f', '#896c3f' ),
+		'mauve'   => array( '#a86b79', '#9d6471' ),
+		'teal'    => array( '#4f8fa3', '#437c8e' ),
+		'taupe'   => array( '#8c7d63', '#82735a' ),
+		'rose'    => array( '#b9727f', '#a8606e' ),
+	);
+	$cycle  = array( 'olive', 'mustard', 'mauve', 'teal', 'taupe', 'rose', 'olive', 'mustard', 'mauve', 'teal', 'taupe' );
+	$name   = $cycle[ max( 0, $index ) % count( $cycle ) ];
+
+	return array(
+		'name'   => $name,
+		'base'   => $colors[ $name ][0],
+		'strong' => $colors[ $name ][1],
+	);
+}
+
+/**
  * Is this the name of a public host? A dotted DNS name: not an IP address,
  * not "localhost", not a single label.
  *

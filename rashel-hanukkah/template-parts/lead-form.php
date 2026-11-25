@@ -45,9 +45,10 @@ $rsh_fields = array(
 );
 ?>
 <div class="rsh-form" id="consult-form" data-rsh-reveal>
-	<div class="rsh-form__arch" aria-hidden="true">
-		<?php rsh_image( 'hero/h3.webp', 800, 533 ); ?>
-	</div>
+	<span class="rsh-form__tw rsh-form__tw--1" aria-hidden="true">✦</span>
+	<span class="rsh-form__tw rsh-form__tw--2" aria-hidden="true">✦</span>
+	<span class="rsh-form__tw rsh-form__tw--3" aria-hidden="true">✦</span>
+
 	<div class="rsh-form__card">
 		<h3 class="rsh-form__ttl" id="rsh-form-ttl"><?php rsh_the_text( 'form_ttl' ); ?></h3>
 
@@ -56,7 +57,6 @@ $rsh_fields = array(
 			<div class="rsh-sent" role="status">
 				<span class="rsh-sent__star" aria-hidden="true">✦</span>
 				<p class="rsh-sent__ttl"><?php rsh_the_text( 'form_ok_ttl' ); ?></p>
-				<p class="rsh-sent__txt"><?php rsh_the_text( 'form_ok_txt' ); ?></p>
 			</div>
 
 		<?php else : ?>
@@ -74,34 +74,44 @@ $rsh_fields = array(
 
 				<p class="rsh-form__alert" role="alert" tabindex="-1" data-rsh-alert><?php echo esc_html( $rsh_notice ? $rsh_notice['message'] : '' ); ?></p>
 
-				<?php foreach ( $rsh_fields as $rsh_name => $rsh_field ) : ?>
-					<div class="rsh-field">
-						<label class="rsh-field__label" for="rsh-<?php echo esc_attr( $rsh_name ); ?>">
-							<?php rsh_the_text( $rsh_field['label'] ); ?>
-							<?php if ( $rsh_field['required'] ) : ?>
-								<span class="rsh-field__req">(<?php rsh_the_text( 'form_required' ); ?>)</span>
-							<?php endif; ?>
-						</label>
-						<input
-							class="rsh-field__input"
-							id="rsh-<?php echo esc_attr( $rsh_name ); ?>"
-							name="rsh_<?php echo esc_attr( $rsh_name ); ?>"
-							type="<?php echo esc_attr( $rsh_field['type'] ); ?>"
-							inputmode="<?php echo esc_attr( $rsh_field['mode'] ); ?>"
-							autocomplete="<?php echo esc_attr( $rsh_field['auto'] ); ?>"
-							maxlength="<?php echo esc_attr( (string) $rsh_field['max'] ); ?>"
-							<?php echo $rsh_field['required'] ? 'required aria-required="true"' : ''; ?>
-						>
-					</div>
-				<?php endforeach; ?>
+				<div class="rsh-form__fields">
+					<?php foreach ( $rsh_fields as $rsh_name => $rsh_field ) : ?>
+						<?php
+						/*
+						 * A real label that rests where the design shows a placeholder and
+						 * moves above the text once the field is focused or filled: the
+						 * look of the design, without a placeholder standing in for a label.
+						 */
+						?>
+						<div class="rsh-field rsh-field--<?php echo esc_attr( $rsh_name ); ?>">
+							<input
+								class="rsh-field__input"
+								id="rsh-<?php echo esc_attr( $rsh_name ); ?>"
+								name="rsh_<?php echo esc_attr( $rsh_name ); ?>"
+								type="<?php echo esc_attr( $rsh_field['type'] ); ?>"
+								inputmode="<?php echo esc_attr( $rsh_field['mode'] ); ?>"
+								autocomplete="<?php echo esc_attr( $rsh_field['auto'] ); ?>"
+								maxlength="<?php echo esc_attr( (string) $rsh_field['max'] ); ?>"
+								placeholder=" "
+								<?php echo $rsh_field['required'] ? 'required aria-required="true"' : ''; ?>
+							>
+							<label class="rsh-field__label" for="rsh-<?php echo esc_attr( $rsh_name ); ?>">
+								<?php rsh_the_text( $rsh_field['label'] ); ?>
+								<?php if ( $rsh_field['required'] ) : ?>
+									<span class="rsh-field__req">(<?php rsh_the_text( 'form_required' ); ?>)</span>
+								<?php endif; ?>
+							</label>
+						</div>
+					<?php endforeach; ?>
+				</div>
 
 				<?php if ( rsh_turnstile_enabled() ) : ?>
-					<div class="cf-turnstile rsh-form__captcha" data-sitekey="<?php echo esc_attr( rsh_turnstile_site_key() ); ?>" data-action="<?php echo esc_attr( RSH_TURNSTILE_ACTION ); ?>" data-theme="dark" data-language="he"></div>
+					<div class="cf-turnstile rsh-form__captcha" data-sitekey="<?php echo esc_attr( rsh_turnstile_site_key() ); ?>" data-action="<?php echo esc_attr( RSH_TURNSTILE_ACTION ); ?>" data-theme="light" data-language="he"></div>
 				<?php endif; ?>
 
 				<button type="submit" class="rsh-form__submit">
 					<span data-rsh-submit-label><?php rsh_the_text( 'form_submit' ); ?></span>
-					<span class="rsh-form__submit-arrow" aria-hidden="true">←</span>
+					<span class="rsh-form__submit-star" aria-hidden="true">✦</span>
 				</button>
 
 				<p class="rsh-form__privacy">
@@ -113,10 +123,5 @@ $rsh_fields = array(
 			</form>
 
 		<?php endif; ?>
-
-		<a class="rsh-form__phone" href="tel:<?php echo esc_attr( rsh_phone_digits( rsh_phone(), true ) ); ?>">
-			<span><?php rsh_the_text( 'phone_lead' ); ?></span>
-			<bdo class="rsh-form__phone-n" dir="ltr"><?php echo esc_html( rsh_phone() ); ?></bdo>
-		</a>
 	</div>
 </div>

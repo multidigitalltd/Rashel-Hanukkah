@@ -16,8 +16,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 <aside class="rsh-bar" data-rsh-bar aria-label="<?php esc_attr_e( 'הרשמה מהירה', 'rashel-hanukkah' ); ?>">
 	<div class="rsh-bar__in">
 		<?php
-		rsh_countdown( 'xs' );
-		rsh_cta( array( 'class' => 'rsh-cta--sm' ) );
+		rsh_countdown( 'bar' );
+		rsh_cta(
+			array(
+				'class' => 'rsh-cta--sm',
+				'arrow' => 'chevrons',
+			)
+		);
 		?>
 	</div>
 </aside>

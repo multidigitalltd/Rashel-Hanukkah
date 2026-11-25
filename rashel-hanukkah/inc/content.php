@@ -39,24 +39,35 @@ function rsh_content_schema() {
 					'label'   => __( 'שורת המועד האחרון', 'rashel-hanukkah' ),
 					'type'    => 'text',
 					'default' => 'כל הקורסים במחיר של דמי חנוכה — עד יום ראשון 13.12',
-					'help'    => __( 'מופיעה מתחת לקורסים וברצועה הצהובה. לעדכן יחד עם תאריך הסיום שבלשונית ההגדרות.', 'rashel-hanukkah' ),
-				),
-				'benefits_ttl'  => array(
-					'label'   => __( 'כותרת רצועת ההטבות', 'rashel-hanukkah' ),
-					'type'    => 'text',
-					'default' => 'לכבוד חנוכה',
-				),
-				'benefits'      => array(
-					'label'   => __( 'רצועת ההטבות', 'rashel-hanukkah' ),
-					'type'    => 'lines',
-					'default' => "50% הנחה\nעד 12 תשלומים\nאת בוחרת את התחום שהכי מעניין אותך\nשנתיים גישה לצפייה חוזרת להטמעת החומר\nדיגיטלי — מהבית, בזמן שנוח לך",
-					'help'    => $lines_help,
+					'help'    => __( 'מופיעה ברצועה שמתחת לקורסים. לעדכן יחד עם תאריך הסיום שבלשונית ההגדרות.', 'rashel-hanukkah' ),
 				),
 				'ticker'        => array(
-					'label'   => __( 'הרצועה הצהובה הנעה', 'rashel-hanukkah' ),
+					'label'   => __( 'הרצועות הצהובות הנעות', 'rashel-hanukkah' ),
 					'type'    => 'lines',
 					'default' => "50% הנחה\nרק במהלך חג החנוכה!\nעד 12 תשלומים\nשנתיים גישה לצפייה חוזרת\nדיגיטלי — מהבית, בזמן שנוח לך",
 					'help'    => $lines_help,
+				),
+				'badge_ring'    => array(
+					'label'   => __( 'עיגול ההנחה: הטקסט המסתובב', 'rashel-hanukkah' ),
+					'type'    => 'text',
+					'default' => 'מבצע חנוכה',
+					'help'    => __( 'מסתובב סביב העיגול, ואחריו אחוז ההנחה והמילה שמתחתיו.', 'rashel-hanukkah' ),
+				),
+				'badge_big'     => array(
+					'label'   => __( 'עיגול ההנחה: המספר', 'rashel-hanukkah' ),
+					'type'    => 'text',
+					'default' => '50%',
+				),
+				'badge_small'   => array(
+					'label'   => __( 'עיגול ההנחה: המילה', 'rashel-hanukkah' ),
+					'type'    => 'text',
+					'default' => 'הנחה',
+				),
+				'coupon_lead'   => array(
+					'label'   => __( 'לפני קוד הקופון', 'rashel-hanukkah' ),
+					'type'    => 'text',
+					'default' => 'בהזנת קוד קופון',
+					'help'    => __( 'הקוד עצמו נקבע בלשונית ההגדרות.', 'rashel-hanukkah' ),
 				),
 				'cd_days'       => array(
 					'label'   => __( 'שעון הספירה: ימים', 'rashel-hanukkah' ),
@@ -88,25 +99,41 @@ function rsh_content_schema() {
 		'hook'         => array(
 			'label'  => __( 'מסך הפתיחה', 'rashel-hanukkah' ),
 			'fields' => array(
-				'hook_q1'   => array(
+				'hook_q1'    => array(
 					'label'   => __( 'שאלה ראשונה', 'rashel-hanukkah' ),
 					'type'    => 'marked',
 					'default' => "אוהבת את עולם *הקולינריה והעיצוב*\nורוצה להפוך *למקצוענית אמיתית?*",
 					'help'    => $marked_help,
 				),
-				'hook_q2'   => array(
+				'hook_q2'    => array(
 					'label'   => __( 'שאלה שנייה', 'rashel-hanukkah' ),
 					'type'    => 'marked',
 					'default' => "רוצה ללמוד *תחום אחד לעומק,*\nבצורה יסודית ומקצועית,\nבלי לבזבז זמן וכסף על מה שלא רלוונטי לך?",
 					'help'    => $marked_help,
 				),
-				'hook_q3'   => array(
+				'hook_q3'    => array(
 					'label'   => __( 'שאלה שלישית', 'rashel-hanukkah' ),
 					'type'    => 'marked',
 					'default' => "תמיד חלמת *ללמוד אצל ראשל*\nוחיכית *להזדמנות המתאימה?*",
 					'help'    => $marked_help,
 				),
-				'hook_next' => array(
+				'hook_dot'   => array(
+					'label'   => __( 'שם נגיש לכפתורי המעבר בין השאלות', 'rashel-hanukkah' ),
+					'type'    => 'text',
+					'default' => 'שאלה',
+					'help'    => __( 'אחריו מופיע מספר השאלה.', 'rashel-hanukkah' ),
+				),
+				'hook_pause' => array(
+					'label'   => __( 'שם נגיש לכפתור עצירת ההחלפה', 'rashel-hanukkah' ),
+					'type'    => 'text',
+					'default' => 'עצירת החלפת השאלות',
+				),
+				'hook_play'  => array(
+					'label'   => __( 'שם נגיש לכפתור חידוש ההחלפה', 'rashel-hanukkah' ),
+					'type'    => 'text',
+					'default' => 'חידוש החלפת השאלות',
+				),
+				'hook_next'  => array(
 					'label'   => __( 'שם נגיש לכפתור החץ', 'rashel-hanukkah' ),
 					'type'    => 'text',
 					'default' => 'המשך להצעה',
@@ -116,45 +143,51 @@ function rsh_content_schema() {
 		'announce'     => array(
 			'label'  => __( 'ההכרזה', 'rashel-hanukkah' ),
 			'fields' => array(
-				'h1_line1'    => array(
-					'label'   => __( 'כותרת ראשית: שורה ראשונה (מוארת)', 'rashel-hanukkah' ),
+				'h1_line1' => array(
+					'label'   => __( 'כותרת ראשית: שורה ראשונה', 'rashel-hanukkah' ),
 					'type'    => 'text',
 					'default' => 'בואי להאיר',
 				),
-				'h1_line2'    => array(
+				'h1_line2' => array(
 					'label'   => __( 'כותרת ראשית: שורה שנייה', 'rashel-hanukkah' ),
 					'type'    => 'text',
 					'default' => 'את הכישרון שבך!',
 				),
-				'lead'        => array(
+				'lead'     => array(
 					'label'   => __( 'פסקת פתיחה', 'rashel-hanukkah' ),
 					'type'    => 'textarea',
 					'default' => 'נבחרת הקורסים הדיגיטליים בעולם העיצוב והקולינריה – נושאים ממוקדים שיוציאו אותך מאסטרית בכל תחום שתבחרי.',
 				),
-				'sub'         => array(
+				'sub'      => array(
 					'label'   => __( 'פסקה שנייה', 'rashel-hanukkah' ),
 					'type'    => 'textarea',
 					'default' => 'בחנוכה הזה ראשל מזמינה אותך להגשים חלום עם נבחרת קורסים דיגיטליים לבחירה אישית ב50% הנחה',
 				),
-				'badge_big'   => array(
-					'label'   => __( 'עיגול ההנחה: המספר', 'rashel-hanukkah' ),
+			),
+		),
+		'benefits'     => array(
+			'label'  => __( 'ההטבות', 'rashel-hanukkah' ),
+			'fields' => array(
+				'benefits_ttl' => array(
+					'label'   => __( 'כותרת', 'rashel-hanukkah' ),
 					'type'    => 'text',
-					'default' => '50%',
+					'default' => 'לכבוד חנוכה',
 				),
-				'badge_small' => array(
-					'label'   => __( 'עיגול ההנחה: המילה', 'rashel-hanukkah' ),
+				'benefits_big' => array(
+					'label'   => __( 'שורת ההנחה', 'rashel-hanukkah' ),
 					'type'    => 'text',
-					'default' => 'הנחה',
+					'default' => '50% הנחה על כל הקורסים',
 				),
-				'arch_alt'    => array(
-					'label'   => __( 'תיאור התמונה הגדולה (לקוראי מסך)', 'rashel-hanukkah' ),
-					'type'    => 'text',
-					'default' => 'בר פירות מעוצב',
+				'benefits'     => array(
+					'label'   => __( 'ההטבות', 'rashel-hanukkah' ),
+					'type'    => 'lines',
+					'default' => "עד 12 תשלומים\nאת בוחרת את התחום שהכי מעניין אותך\nשנתיים גישה לצפייה חוזרת להטמעת החומר\nדיגיטלי — מהבית, בזמן שנוח לך",
+					'help'    => __( 'הטבה אחת בכל שורה. ארבע הראשונות מקבלות אייקון: תשלומים, בחירה, צפייה חוזרת, דיגיטלי.', 'rashel-hanukkah' ),
 				),
-				'arch2_alt'   => array(
-					'label'   => __( 'תיאור התמונה הקטנה (לקוראי מסך)', 'rashel-hanukkah' ),
+				'benefits_alt' => array(
+					'label'   => __( 'תיאור התמונה (לקוראי מסך)', 'rashel-hanukkah' ),
 					'type'    => 'text',
-					'default' => 'קינוחי פטיסרי מעוצבים',
+					'default' => 'שולחן חנוכה ערוך עם מנורת קריסטל, מגשי קינוחים ומאפים',
 				),
 			),
 		),
@@ -172,7 +205,7 @@ function rsh_content_schema() {
 					'default' => 'כל קורס עומד בפני עצמו — כולל מתכונים, טכניקות וכל הידע, פרקטי ומעשי שיאפשר לך להתחיל לעבוד איתו כבר מחר.',
 				),
 				'courses_note' => array(
-					'label'   => __( 'הערת מחירים', 'rashel-hanukkah' ),
+					'label'   => __( 'הסרט הצהוב', 'rashel-hanukkah' ),
 					'type'    => 'text',
 					'default' => 'כל המחירים אחרי הנחת דמי החנוכה (50% הנחה)',
 				),
@@ -185,6 +218,26 @@ function rsh_content_schema() {
 					'label'   => __( 'לשונית עיצוב', 'rashel-hanukkah' ),
 					'type'    => 'text',
 					'default' => 'קורסי עיצוב',
+				),
+				'syl_open'     => array(
+					'label'   => __( 'כפתור הסילבוס', 'rashel-hanukkah' ),
+					'type'    => 'text',
+					'default' => 'לסילבוס המלא',
+				),
+				'syl_label'    => array(
+					'label'   => __( 'חלון הסילבוס: הכותרת הקטנה', 'rashel-hanukkah' ),
+					'type'    => 'text',
+					'default' => 'סילבוס הקורס',
+				),
+				'syl_bonus'    => array(
+					'label'   => __( 'חלון הסילבוס: תווית בונוס', 'rashel-hanukkah' ),
+					'type'    => 'text',
+					'default' => 'בונוס',
+				),
+				'syl_close'    => array(
+					'label'   => __( 'חלון הסילבוס: שם נגיש לכפתור הסגירה', 'rashel-hanukkah' ),
+					'type'    => 'text',
+					'default' => 'סגירה',
 				),
 				'price_now'    => array(
 					'label'   => __( 'קידומת מחיר לקוראי מסך: מחיר מבצע', 'rashel-hanukkah' ),
@@ -232,7 +285,7 @@ function rsh_content_schema() {
 			'label'  => __( 'המלצות', 'rashel-hanukkah' ),
 			'fields' => array(
 				'quote'      => array(
-					'label'   => __( 'כותרת הציטוט', 'rashel-hanukkah' ),
+					'label'   => __( 'הציטוט', 'rashel-hanukkah' ),
 					'type'    => 'text',
 					'default' => 'הזדמנות חד פעמית, לקפוץ הרבה שלבים קדימה',
 				),
@@ -247,39 +300,55 @@ function rsh_content_schema() {
 					'default' => 'סרטון המלצה שני',
 				),
 				'wall_ttl'   => array(
-					'label'   => __( 'כותרת קיר ההמלצות (לקוראי מסך בלבד)', 'rashel-hanukkah' ),
+					'label'   => __( 'כותרת קרוסלת ההמלצות', 'rashel-hanukkah' ),
 					'type'    => 'text',
-					'default' => 'הודעות שקיבלנו מבוגרות ומבוגרים',
+					'default' => 'מה אומרות הבוגרות שלנו',
 				),
 				'wall_alt'   => array(
 					'label'   => __( 'תיאור צילומי ההמלצות (לקוראי מסך)', 'rashel-hanukkah' ),
 					'type'    => 'text',
 					'default' => 'צילום מסך של הודעת המלצה',
 				),
+				'wall_stars' => array(
+					'label'   => __( 'תיאור הכוכבים (לקוראי מסך)', 'rashel-hanukkah' ),
+					'type'    => 'text',
+					'default' => 'חמישה כוכבים',
+				),
+				'wall_prev'  => array(
+					'label'   => __( 'שם נגיש לכפתור הקודם', 'rashel-hanukkah' ),
+					'type'    => 'text',
+					'default' => 'הקודם',
+				),
+				'wall_next'  => array(
+					'label'   => __( 'שם נגיש לכפתור הבא', 'rashel-hanukkah' ),
+					'type'    => 'text',
+					'default' => 'הבא',
+				),
 			),
 		),
 		'consult'      => array(
 			'label'  => __( 'ייעוץ וטופס', 'rashel-hanukkah' ),
 			'fields' => array(
+				'circle_ring'   => array(
+					'label'   => __( 'העיגול הירוק: הטקסט המסתובב', 'rashel-hanukkah' ),
+					'type'    => 'text',
+					'default' => 'קורס ברים מתוקים ואירועי יוקרה בפורמט דיגיטלי',
+				),
+				'circle_center' => array(
+					'label'   => __( 'העיגול הירוק: המרכז', 'rashel-hanukkah' ),
+					'type'    => 'lines',
+					'default' => "לראשונה\nבישראל",
+					'help'    => $lines_help,
+				),
 				'consult_ttl'   => array(
-					'label'   => __( 'כותרת: החלק הרגיל', 'rashel-hanukkah' ),
+					'label'   => __( 'כותרת', 'rashel-hanukkah' ),
 					'type'    => 'text',
-					'default' => 'מתלבטת אם זה',
+					'default' => 'מתלבטת אם זה מתאים לך?',
 				),
-				'consult_mark'  => array(
-					'label'   => __( 'כותרת: החלק המסומן בצהוב', 'rashel-hanukkah' ),
+				'phone_lead'    => array(
+					'label'   => __( 'לפני מספר הטלפון', 'rashel-hanukkah' ),
 					'type'    => 'text',
-					'default' => 'מתאים לך?',
-				),
-				'ticket_txt'    => array(
-					'label'   => __( 'שובר המתנה: טקסט', 'rashel-hanukkah' ),
-					'type'    => 'text',
-					'default' => 'שיחת ייעוץ והתאמה עם יועצת לימודים, בשווי 700 ₪',
-				),
-				'ticket_badge'  => array(
-					'label'   => __( 'שובר המתנה: התווית', 'rashel-hanukkah' ),
-					'type'    => 'text',
-					'default' => 'במתנה',
+					'default' => 'צרי קשר בטלפון או בוואטסאפ –',
 				),
 				'form_ttl'      => array(
 					'label'   => __( 'כותרת הטופס', 'rashel-hanukkah' ),
@@ -319,19 +388,9 @@ function rsh_content_schema() {
 					'help'    => __( 'אחריה מופיע קישור למדיניות הפרטיות.', 'rashel-hanukkah' ),
 				),
 				'form_ok_ttl'   => array(
-					'label'   => __( 'הודעת הצלחה: כותרת', 'rashel-hanukkah' ),
+					'label'   => __( 'הודעת הצלחה', 'rashel-hanukkah' ),
 					'type'    => 'text',
-					'default' => 'קיבלנו!',
-				),
-				'form_ok_txt'   => array(
-					'label'   => __( 'הודעת הצלחה: טקסט', 'rashel-hanukkah' ),
-					'type'    => 'text',
-					'default' => 'נחזור אלייך בהקדם.',
-				),
-				'phone_lead'    => array(
-					'label'   => __( 'לפני מספר הטלפון', 'rashel-hanukkah' ),
-					'type'    => 'text',
-					'default' => 'או פשוט בטלפון:',
+					'default' => 'תודה! נחזור אלייך בהקדם',
 				),
 			),
 		),

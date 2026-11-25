@@ -24,6 +24,7 @@ function rsh_setting_defaults() {
 		'phone'          => '054-9420423',
 		'deadline'       => '2026-12-13T23:59:59',
 		'discount'       => 50,
+		'coupon'         => 'H50',
 		'sticky_bar'     => true,
 		'a11y_toolbar'   => true,
 		'credit'         => true,
@@ -86,6 +87,15 @@ function rsh_discount() {
 	$discount = (int) rsh_setting( 'discount' );
 
 	return $discount >= 1 && $discount <= 99 ? $discount : 50;
+}
+
+/**
+ * The coupon code shown on the page; empty hides every mention of it.
+ *
+ * @return string
+ */
+function rsh_coupon() {
+	return trim( (string) rsh_setting( 'coupon' ) );
 }
 
 /**

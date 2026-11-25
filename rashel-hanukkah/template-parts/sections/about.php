@@ -12,11 +12,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 ?>
 <section class="rsh-about" aria-labelledby="rsh-about-ttl">
 	<div class="rsh-wrap rsh-about__in">
-		<div class="rsh-arch rsh-about__portrait">
-			<?php rsh_image( 'rashel-portrait.webp', 640, 960, array( 'alt' => rsh_text( 'portrait_alt' ) ) ); ?>
+		<div class="rsh-about__portrait">
+			<span class="rsh-about__block" aria-hidden="true"></span>
+			<span class="rsh-about__star" aria-hidden="true">✦</span>
+			<div class="rsh-about__photo">
+				<?php rsh_image( 'rashel-portrait.webp', 640, 960, array( 'alt' => rsh_text( 'portrait_alt' ) ) ); ?>
+			</div>
 		</div>
 		<div class="rsh-about__text">
-			<span class="rsh-about__star" aria-hidden="true">✦</span>
 			<h2 class="rsh-sr-only" id="rsh-about-ttl"><?php rsh_the_text( 'about_ttl' ); ?></h2>
 			<p class="rsh-about__quote" data-rsh-reveal><?php rsh_the_text( 'about_quote' ); ?></p>
 			<p class="rsh-about__txt"><?php rsh_the_text( 'about_txt' ); ?></p>
@@ -27,7 +30,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 					<path class="rsh-sign__p2" d="M30 84 C 80 78, 150 80, 214 72" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
 				</svg>
 			</p>
-			<div data-rsh-reveal><?php rsh_cta( array( 'pulse' => true ) ); ?></div>
+			<div data-rsh-reveal>
+				<?php
+				rsh_cta(
+					array(
+						'pulse' => true,
+						'class' => 'rsh-cta--lg rsh-cta--shadow',
+					)
+				);
+				?>
+			</div>
 		</div>
 	</div>
 </section>

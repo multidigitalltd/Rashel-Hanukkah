@@ -2,6 +2,27 @@
 
 All notable changes to this project are listed here. Versions follow [Semantic Versioning](https://semver.org/); the theme version lives in `rashel-hanukkah/style.css` and `RSH_VERSION` and the two are bumped together.
 
+## 2.0.0: 2026-11-25
+
+The landing page rebuilt from design handoff v11. The dashboard, the lead store and the security model are unchanged.
+
+### Changed
+
+- New page: rotating opening questions with a photo mosaic, announcement over a full-bleed photo with falling confetti, benefits with the coupon code, course cards with a colour per course, urgency band, photo strip, Rashel's section, testimonial carousel, consultation form with floating labels, sticky bottom bar.
+- New palette (mauve, beige, yellow and six course colours) and the Oscar heading font.
+- The form's success panel shows the star and one title.
+
+### Added
+
+- A syllabus per course (field in the course editor), shown in a native modal dialog. An upgrade routine fills the syllabus of courses created by the 1.0.0 installer.
+- A coupon code setting (default `H50`); an empty value removes the coupon from the page.
+- A pause button for the rotating questions.
+- `content-visibility: auto` on the long sections below the fold, to keep the first layout short on phones.
+
+### Removed
+
+- The pinned opening, the arch gallery, the consultation ticket and their images.
+
 ## 1.0.0: 2026-11-23
 
 First release.

@@ -34,6 +34,48 @@ function rsh_install() {
 add_action( 'after_switch_theme', 'rsh_install' );
 
 /**
+ * Bring an installed site up to this version of the theme.
+ *
+ * Version 2.0.0 added a syllabus to every course. A course that was created
+ * by the installer (it still points at its bundled photo) and has no syllabus
+ * yet receives the one of the design; a syllabus the office wrote is never
+ * touched. Runs once per version, on an admin request.
+ *
+ * @return void
+ */
+function rsh_upgrade() {
+	$installed = (string) get_option( 'rsh_installed' );
+
+	if ( '' === $installed || version_compare( $installed, RSH_VERSION, '>=' ) ) {
+		return;
+	}
+
+	if ( version_compare( $installed, '2.0.0', '<' ) ) {
+		$defaults = array_column( rsh_default_courses(), 'syllabus', 'image' );
+		$posts    = get_posts(
+			array(
+				'post_type'      => 'rsh_course',
+				'post_status'    => 'any',
+				'posts_per_page' => 60,
+				'no_found_rows'  => true,
+			)
+		);
+
+		foreach ( $posts as $post ) {
+			$image = (string) get_post_meta( $post->ID, 'rsh_image', true );
+
+			if ( isset( $defaults[ $image ] ) && '' === (string) get_post_meta( $post->ID, 'rsh_syllabus', true ) ) {
+				update_post_meta( $post->ID, 'rsh_syllabus', $defaults[ $image ] );
+			}
+		}
+	}
+
+	update_option( 'rsh_installed', RSH_VERSION, false );
+	rsh_flush_courses();
+}
+add_action( 'admin_init', 'rsh_upgrade' );
+
+/**
  * Create the courses of the design, in order.
  *
  * @return void
@@ -70,6 +112,7 @@ function rsh_install_courses() {
 		update_post_meta( $post_id, 'rsh_cat', $course['cat'] );
 		update_post_meta( $post_id, 'rsh_tag', $course['tag'] );
 		update_post_meta( $post_id, 'rsh_hook', $course['hook'] );
+		update_post_meta( $post_id, 'rsh_syllabus', $course['syllabus'] );
 		update_post_meta( $post_id, 'rsh_price', $course['price'] );
 		update_post_meta( $post_id, 'rsh_original', 0 );
 		update_post_meta( $post_id, 'rsh_pay', rsh_clean_pay_url( $course['pay'] ) );

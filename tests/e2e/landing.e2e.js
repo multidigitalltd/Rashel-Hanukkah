@@ -1,8 +1,9 @@
 /**
  * End-to-end: the landing page as a visitor sees it.
  *
- * Structure and copy, the course menu, the countdown, the pinned opening, the
- * sticky bar, the privacy notice, the accessibility toolbar, the lead form
+ * Structure and copy, the course menu and syllabus dialogs, the countdown, the
+ * rotating opening, the testimonials carousel, the sticky bar, the privacy
+ * notice, the accessibility toolbar, the lead form
  * (including the negative cases), the no-JavaScript and reduced-motion paths,
  * responsive widths, axe-core and the hardening headers.
  *
@@ -23,17 +24,20 @@ const COPY = [
 	'בואי להאיר את הכישרון שבך!',
 	'נבחרת הקורסים הדיגיטליים בעולם העיצוב והקולינריה – נושאים ממוקדים שיוציאו אותך מאסטרית בכל תחום שתבחרי.',
 	'בחנוכה הזה ראשל מזמינה אותך להגשים חלום עם נבחרת קורסים דיגיטליים לבחירה אישית ב50% הנחה',
-	'אני רוצה לנצל את ההזדמנות!', 'לכבוד חנוכה', 'עד 12 תשלומים', 'את בוחרת את התחום שהכי מעניין אותך',
+	'אני רוצה לנצל את ההזדמנות!', 'לכבוד חנוכה', '50% הנחה על כל הקורסים', 'בהזנת קוד קופון', 'H50',
+	'עד 12 תשלומים', 'את בוחרת את התחום שהכי מעניין אותך',
 	'שנתיים גישה לצפייה חוזרת להטמעת החומר', 'דיגיטלי — מהבית, בזמן שנוח לך', 'רק במהלך חג החנוכה!',
 	'בואי לעשות מהכשרון שלך אירוע!',
 	'כל קורס עומד בפני עצמו — כולל מתכונים, טכניקות וכל הידע, פרקטי ומעשי שיאפשר לך להתחיל לעבוד איתו כבר מחר.',
-	'כל המחירים אחרי הנחת דמי החנוכה (50% הנחה)', 'קורסי קולינריה', 'קורסי עיצוב',
+	'כל המחירים אחרי הנחת דמי החנוכה (50% הנחה)', 'קורסי קולינריה', 'קורסי עיצוב', 'לסילבוס המלא', 'סילבוס הקורס',
+	'בחלק זה נלמד להכין מסוגי בצקים מגוון מאפים מיוחדים, נבין איך להפוך מאפה רגיל למנת פינגר פוד יפיפייה שתקשט ותשדרג לך כל בר מלוח.',
+	'שיעור 3 | בר בשילוב קוליסה', 'בונוס | השראה וטכניקה לקיר צילום משודרג',
 	'כל הקורסים במחיר של דמי חנוכה — עד יום ראשון 13.12',
 	'התחלתי בדיוק כמוך — עם אהבה גדולה ליופי ותשוקה עמוקה לעצב וליצור בעצמי. אחרי עשור של הובלת טרנדים בעיצוב ברים ממותגים ומאות אירועי קונספט יוקרתיים, אני יודעת שיש לי שיטה. ואת השיטה הזאת אני רוצה להעביר גם לך.',
 	'בואי לגלות מחדש את הכיף שבעולם האירועים, את הסודות הגדולים שמאחורי כל פרט קטן — ולהגיע לתוצאות שלא חלמת עליהן.',
-	'הזדמנות חד פעמית, לקפוץ הרבה שלבים קדימה', 'מתלבטת אם זה', 'מתאים לך?',
-	'שיחת ייעוץ והתאמה עם יועצת לימודים, בשווי 700 ₪', 'במתנה', 'או מלאי פרטים כאן ונחזור אלייך',
-	'חיזרו אלי', 'או פשוט בטלפון:', '054-9420423'
+	'הזדמנות חד פעמית, לקפוץ הרבה שלבים קדימה', 'מה אומרות הבוגרות שלנו',
+	'קורס ברים מתוקים ואירועי יוקרה בפורמט דיגיטלי', 'לראשונה', 'בישראל', 'מתלבטת אם זה מתאים לך?',
+	'צרי קשר בטלפון או בוואטסאפ –', 'או מלאי פרטים כאן ונחזור אלייך', 'חיזרו אלי', '054-9420423'
 ];
 
 const COURSES = [
@@ -98,6 +102,8 @@ function postLead(request, fields) {
 	check('names, prices and original prices match the design', COURSES.every((course, index) => cards[index] && cards[index].name === course[0] && cards[index].price === course[1] && cards[index].was === course[2]), JSON.stringify(cards.map((card) => [card.name, card.price, card.was])));
 	check('each card links to its own payment page in a new tab, with rel=noopener', COURSES.every((course, index) => cards[index] && cards[index].href === PAY + course[3] && cards[index].target === '_blank' && /noopener/.test(cards[index].rel)));
 	check('each card has its photo', cards.every((card) => card.hasImage));
+	check('each card shows the coupon code and offers its syllabus', (await page.locator('.rsh-card .rsh-coupon__code').allTextContents()).filter((code) => code.trim() === 'H50').length === 11 && (await page.locator('.rsh-card__syl').count()) === 11);
+	check('the two courses with new photos use them', await page.evaluate(() => ['dessert-cups', 'modern-desserts'].every((name) => !!document.querySelector('.rsh-card__img img[src*="' + name + '.webp"]'))));
 
 	const broken = await page.evaluate(async () => {
 		const images = Array.from(document.images);
@@ -119,28 +125,82 @@ function postLead(request, fields) {
 
 	/* ---------------------------------------------------------------- */
 	console.log('\nCountdown, opening and sticky bar');
-	const digits = () => page.evaluate(() => Array.from(document.querySelectorAll('.rsh-cd--lg [data-rsh-unit]')).map((node) => node.textContent));
+	const digits = () => page.evaluate(() => Array.from(document.querySelectorAll('.rsh-announce [data-rsh-unit]')).map((node) => node.textContent));
 	const before = await digits();
 	await page.waitForTimeout(2100);
 	const after = await digits();
 	check('countdown shows four two-digit values', before.length === 4 && before.every((value) => /^\d{2,}$/.test(value)), before.join(':'));
 	check('countdown ticks', before.join(':') !== after.join(':'), before.join(':') + ' -> ' + after.join(':'));
+	check('the countdown appears in three places', (await page.locator('[data-rsh-countdown]').count()) === 3);
 	const deadline = await page.evaluate(() => window.rshLanding.deadline);
 	check('deadline is 13.12.2026 23:59:59 in Israel', deadline === Date.UTC(2026, 11, 13, 21, 59, 59), new Date(deadline).toISOString());
 
-	await page.evaluate(() => window.scrollTo(0, 0));
-	await page.waitForTimeout(400);
+	// A fresh load, with the pointer away from the questions (resting on them holds the rotation).
+	await page.mouse.move(700, 880);
+	// A reload restores the scroll position, so go back to the top first.
+	await page.evaluate(() => { window.history.scrollRestoration = 'manual'; window.scrollTo(0, 0); });
+	await page.reload({ waitUntil: 'load' });
 	const active = () => page.evaluate(() => Array.from(document.querySelectorAll('[data-rsh-q]')).findIndex((node) => node.classList.contains('is-active')));
-	check('opening starts on the first question', (await active()) === 0);
+	const shown = () => page.evaluate(() => Array.from(document.querySelectorAll('[data-rsh-q]')).filter((node) => getComputedStyle(node).opacity === '1').length);
+	check('the opening starts on the first question, alone', (await active()) === 0 && (await shown()) === 1);
 	check('sticky bar is hidden at the top and out of the tab order', await page.evaluate(() => getComputedStyle(document.querySelector('[data-rsh-bar]')).visibility === 'hidden'));
-	const hook = await page.evaluate(() => document.querySelector('[data-rsh-hook]').getBoundingClientRect().height);
-	await page.evaluate((height) => window.scrollTo(0, Math.round(height * 0.3)), hook);
-	await page.waitForTimeout(500);
-	check('scrolling moves to the second question', (await active()) === 1);
-	await page.evaluate((height) => window.scrollTo(0, Math.round(height * 0.6)), hook);
-	await page.waitForTimeout(500);
-	check('and then to the third', (await active()) === 2);
+	await page.waitForTimeout(6200);
+	check('the questions change on their own', (await active()) === 1);
+	await page.click('[data-rsh-dot="2"]');
+	check('a dot jumps to its question and is marked as current', (await active()) === 2 && (await page.getAttribute('[data-rsh-dot="2"]', 'aria-current')) === 'true');
+	await page.click('[data-rsh-hook-pause]');
+	await page.mouse.move(700, 880);
+	await page.waitForTimeout(6200);
+	check('the pause button stops the rotation and says so', (await active()) === 2 && (await page.getAttribute('[data-rsh-hook-pause]', 'aria-pressed')) === 'true' && (await page.getAttribute('[data-rsh-hook-pause]', 'aria-label')).includes('חידוש'));
+	await page.click('[data-rsh-hook-pause]');
+	await page.mouse.move(700, 880);
+	check('each dot is at least 24 by 24 pixels', await page.evaluate(() => Array.from(document.querySelectorAll('[data-rsh-dot], [data-rsh-hook-pause]')).every((node) => { const box = node.getBoundingClientRect(); return box.height >= 24 && box.width >= 22; })));
+	check('the collage photos that wait for the first paint are loaded afterwards', await page.evaluate(() => document.querySelectorAll('[data-rsh-src]').length === 0 && Array.from(document.querySelectorAll('.rsh-tile__img')).every((image) => !!image.getAttribute('src'))));
+	check('the badge ring reads "50%" the right way round', await page.evaluate(() => { const ring = Array.from(document.querySelectorAll('.rsh-badge--open .rsh-ring__c')).map((node) => node.textContent.trim()); const at = ring.indexOf('%'); return ring.length === 24 && ring[at + 1] === '0' && ring[at + 2] === '5'; }));
+	await page.evaluate(() => window.scrollTo(0, 1200));
+	await page.waitForTimeout(700);
 	check('sticky bar is visible after scrolling', await page.evaluate(() => getComputedStyle(document.querySelector('[data-rsh-bar]')).visibility === 'visible'));
+	check('the heading lights up and the falling confetti is laid out', await page.evaluate(() => document.querySelector('[data-rsh-h1]').classList.contains('is-lit') && document.querySelectorAll('[data-rsh-confetti] span').length === 34));
+
+	/* ---------------------------------------------------------------- */
+	console.log('\nSyllabus dialog');
+	await page.evaluate(() => document.getElementById('courses').scrollIntoView());
+	await page.waitForTimeout(400);
+	const opener = page.locator('.rsh-card__syl').first();
+	await opener.click();
+	const dialog = page.locator('dialog.rsh-syl[open]');
+	check('the syllabus opens as a modal dialog named after its course', (await dialog.count()) === 1 && (await dialog.locator('.rsh-syl__ttl').textContent()).trim() === 'פינגר פוד' && await page.evaluate(() => document.querySelector('dialog.rsh-syl[open]').matches(':modal')));
+	check('with its lessons, its bonus, its price and a way to pay', (await dialog.locator('.rsh-syl__item').count()) === 3 && (await dialog.locator('.rsh-syl__bonus').count()) === 1 && (await dialog.locator('.rsh-price').textContent()).trim() === '480 ₪' && (await dialog.locator('a.rsh-cta').getAttribute('href')) === PAY + '7xawlDTOCUSOSJYdwCPVmA');
+	const dialogViolations = await axe(page);
+	check('axe finds no violations with the dialog open', dialogViolations.length === 0, JSON.stringify(dialogViolations));
+	await page.keyboard.press('Escape');
+	check('Escape closes it and focus returns to the button that opened it', (await page.locator('dialog.rsh-syl[open]').count()) === 0 && await page.evaluate(() => document.activeElement.classList.contains('rsh-card__syl')));
+	await opener.click();
+	await page.mouse.click(8, 8);
+	// The dialog's "close" event is queued, not fired in the click itself.
+	await page.waitForFunction(() => !document.querySelector('dialog.rsh-syl[open]') && document.documentElement.style.overflow === '', null, { timeout: 2000 }).catch(() => {});
+	check('a click on the backdrop closes it, and the page scrolls again', (await page.locator('dialog.rsh-syl[open]').count()) === 0 && await page.evaluate(() => document.documentElement.style.overflow === ''));
+	await opener.click();
+	await page.click('dialog.rsh-syl[open] .rsh-syl__close');
+	check('and so does the close button', (await page.locator('dialog.rsh-syl[open]').count()) === 0);
+	check('every course has its own syllabus', await page.evaluate(() => document.querySelectorAll('dialog.rsh-syl').length === 11 && Array.from(document.querySelectorAll('dialog.rsh-syl')).every((node) => node.querySelectorAll('.rsh-syl__item').length >= 3)));
+
+	/* ---------------------------------------------------------------- */
+	console.log('\nTestimonials carousel');
+	await page.evaluate(() => document.querySelector('[data-rsh-reviews]').scrollIntoView());
+	await page.waitForTimeout(500);
+	const scrolled = () => page.evaluate(() => Math.abs(document.querySelector('[data-rsh-reviews-track]').scrollLeft));
+	const barWidth = () => page.evaluate(() => document.querySelector('[data-rsh-reviews-bar]').getBoundingClientRect().width);
+	const startBar = await barWidth();
+	check('eleven testimonials, in a region that can be reached and scrolled from the keyboard', (await page.locator('.rsh-review').count()) === 11 && (await page.getAttribute('[data-rsh-reviews-track]', 'tabindex')) === '0' && (await scrolled()) < 8, (await page.locator('.rsh-review').count()) + ' cards, tabindex ' + (await page.getAttribute('[data-rsh-reviews-track]', 'tabindex')) + ', scrolled ' + (await scrolled()));
+	await page.click('[data-rsh-reviews-next]');
+	await page.waitForTimeout(900);
+	const afterNext = await scrolled();
+	check('"next" moves one card on and the progress bar follows', afterNext > 200 && (await barWidth()) > startBar, afterNext + 'px');
+	await page.click('[data-rsh-reviews-prev]');
+	await page.waitForTimeout(900);
+	check('"previous" moves back', (await scrolled()) < afterNext);
+	check('the carousel never moves by itself', await page.evaluate(() => new Promise((resolve) => { const track = document.querySelector('[data-rsh-reviews-track]'); const at = track.scrollLeft; setTimeout(() => resolve(track.scrollLeft === at), 1500); })));
 
 	/* ---------------------------------------------------------------- */
 	console.log('\nAccessibility toolbar');
@@ -156,14 +216,13 @@ function postLead(request, fields) {
 	await page.click('[data-rsh-a11y-launch]');
 	await page.click('[data-rsh-a11y-toggle="nomotion"]');
 	await page.keyboard.press('Escape');
-	await page.evaluate(() => window.scrollTo(0, 700));
 	await page.waitForTimeout(300);
-	check('"stop animations" drops the page to its static layout at once: nothing pinned, no photos following the scroll', await page.evaluate(() => !document.documentElement.classList.contains('rsh-motion') && getComputedStyle(document.querySelector('.rsh-hook__stage')).position !== 'sticky' && getComputedStyle(document.querySelector('.rsh-hook__img')).display === 'none' && getComputedStyle(document.querySelector('.rsh-ticker__track')).animationName === 'none') && (await page.locator('[data-rsh-q]:visible').count()) === 3);
+	check('"stop animations" drops the page to its static layout at once: every question listed, nothing rotating or moving', await page.evaluate(() => !document.documentElement.classList.contains('rsh-motion') && getComputedStyle(document.querySelector('.rsh-hook__nav')).display === 'none' && getComputedStyle(document.querySelector('.rsh-ticker__track')).animationName === 'none' && getComputedStyle(document.querySelector('.rsh-badge__spin')).animationName === 'none' && getComputedStyle(document.querySelector('[data-rsh-confetti] span')).animationName === 'none') && (await page.locator('[data-rsh-q]:visible').count()) === 3);
 	check('and everything that was waiting to be revealed is visible', await page.evaluate(() => Array.from(document.querySelectorAll('[data-rsh-reveal], .rsh-h1__w')).every((node) => getComputedStyle(node).opacity === '1')));
 	await page.click('[data-rsh-a11y-launch]');
 	await page.click('[data-rsh-a11y-toggle="nomotion"]');
 	await page.keyboard.press('Escape');
-	check('turning it off brings motion back', await page.evaluate(() => document.documentElement.classList.contains('rsh-motion') && getComputedStyle(document.querySelector('.rsh-hook__stage')).position === 'sticky'));
+	check('turning it off brings motion back', await page.evaluate(() => document.documentElement.classList.contains('rsh-motion') && getComputedStyle(document.querySelector('.rsh-hook__nav')).display === 'flex'));
 	await page.reload({ waitUntil: 'load' });
 	check('preferences survive a reload', await page.evaluate(() => document.documentElement.classList.contains('rsh-a11y-contrast')));
 	await page.click('[data-rsh-a11y-launch]');
@@ -205,6 +264,7 @@ function postLead(request, fields) {
 
 	await form.click('.rsh-form__submit');
 	check('an empty form is stopped in place, with the first field marked and focused', (await form.getAttribute('#rsh-name', 'aria-invalid')) === 'true' && (await form.evaluate(() => document.activeElement.id)) === 'rsh-name');
+	check('every field has a real label, and the required ones say so in words', await form.evaluate(() => ['rsh-name', 'rsh-phone', 'rsh-email'].every((id) => !!document.querySelector('label[for="' + id + '"]')) && document.querySelector('label[for="rsh-name"]').textContent.includes('חובה') && !document.querySelector('label[for="rsh-email"]').textContent.includes('חובה')));
 	check('the error is tied to its field', await form.evaluate(() => { const field = document.getElementById('rsh-name'); const id = field.getAttribute('aria-describedby'); return !!id && !!document.getElementById(id).textContent.trim(); }));
 
 	await form.fill('#rsh-name', 'בדיקה אוטומטית');
@@ -221,7 +281,7 @@ function postLead(request, fields) {
 	await form.fill('#rsh-email', 'visitor@example.test');
 	await form.click('.rsh-form__submit');
 	await form.waitForSelector('.rsh-sent');
-	check('a valid form is replaced by the confirmation, announced and focused', (await form.getAttribute('.rsh-sent', 'role')) === 'status' && (await form.evaluate(() => document.activeElement.classList.contains('rsh-sent'))) && (await form.textContent('.rsh-sent')).includes('קיבלנו!'));
+	check('a valid form is replaced by the confirmation, announced and focused', (await form.getAttribute('.rsh-sent', 'role')) === 'status' && (await form.evaluate(() => document.activeElement.classList.contains('rsh-sent'))) && (await form.textContent('.rsh-sent')).includes('תודה! נחזור אלייך בהקדם'));
 	await form.waitForTimeout(500);
 	const sent = mails().slice(mailsBefore);
 	check('the office is notified by email, with name and phone only', sent.length === 1 && sent[0].message.includes('054-1234567') && !sent[0].message.includes('visitor@example.test'), JSON.stringify(sent));
@@ -287,7 +347,10 @@ function postLead(request, fields) {
 	await noJs.goto(BASE + '/', { waitUntil: 'load' });
 	check('all three questions are visible', (await noJs.locator('[data-rsh-q]:visible').count()) === 3);
 	check('all eleven courses are listed, under their category headings', (await noJs.locator('.rsh-card:visible').count()) === 11 && (await noJs.locator('.rsh-panel__ttl:visible').count()) === 2);
-	check('the tab buttons, which would do nothing, are not shown', (await noJs.locator('.rsh-tabs:visible').count()) === 0);
+	check('the buttons that would do nothing are not shown: tabs, syllabus, carousel arrows, question dots', (await noJs.locator('.rsh-tabs:visible, .rsh-card__syl:visible, .rsh-reviews__nav:visible, .rsh-hook__nav:visible').count()) === 0);
+	// Sections below the fold are laid out only once they come into view.
+	await noJs.locator('[data-rsh-reviews-track]').scrollIntoViewIfNeeded();
+	check('the testimonials still scroll sideways on their own', await noJs.evaluate(() => { const track = document.querySelector('[data-rsh-reviews-track]'); return track.scrollWidth > track.clientWidth && getComputedStyle(track).overflowX === 'auto'; }));
 	check('the main heading is fully visible', await noJs.evaluate(() => getComputedStyle(document.querySelector('.rsh-h1__w')).opacity === '1'));
 	await plain.close();
 
@@ -297,7 +360,7 @@ function postLead(request, fields) {
 	await acknowledgePrivacy(calm, version);
 	const still = await calm.newPage();
 	await still.goto(BASE + '/', { waitUntil: 'load' });
-	check('nothing is pinned or animated', await still.evaluate(() => !document.documentElement.classList.contains('rsh-motion') && getComputedStyle(document.querySelector('.rsh-ticker__track')).animationName === 'none' && getComputedStyle(document.querySelector('.rsh-hook__stage')).position !== 'sticky'));
+	check('nothing rotates, falls or moves', await still.evaluate(() => !document.documentElement.classList.contains('rsh-motion') && getComputedStyle(document.querySelector('.rsh-ticker__track')).animationName === 'none' && getComputedStyle(document.querySelector('.rsh-hook__nav')).display === 'none' && document.querySelectorAll('[data-rsh-confetti] span').length === 0 && document.querySelectorAll('canvas').length === 0));
 	check('all three questions are visible', (await still.locator('[data-rsh-q]:visible').count()) === 3);
 	check('revealed content is simply there', await still.evaluate(() => Array.from(document.querySelectorAll('[data-rsh-reveal]')).every((node) => getComputedStyle(node).opacity === '1')));
 	const calmViolations = await axe(still);

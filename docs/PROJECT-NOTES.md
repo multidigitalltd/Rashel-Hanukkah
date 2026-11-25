@@ -46,9 +46,10 @@ The end-to-end scripts build on each other and share one rate-limit window: run 
   - `inc/leads.php`, `inc/leads-crm.php`: post type `rsh_lead` with its own capability. Public REST routes `rashel/v1/nonce` and `rashel/v1/lead`, plus an `admin-post.php` fallback without JavaScript. One function validates and stores: `rsh_process_lead()`.
   - `inc/dashboard.php` (admin only): the "ראשל חנוכה" screen. One save handler, `admin_post_rsh_save`.
   - `inc/audit.php`: one log for settings, copy and leads, in the option `rsh_audit`.
-  - `inc/install.php`: runs once on activation: the eleven courses and the three mandatory pages.
+  - `inc/course-data.php`: the eleven default courses with their syllabus, as plain data.
+  - `inc/install.php`: runs once on activation: the eleven courses and the three mandatory pages. `rsh_upgrade()` migrates stored data between versions (option `rsh_installed`).
 - Front end: `assets/css/main.css` on every page; `landing.css`, `landing.js` and `forms.js` only where the landing page renders (`rsh_is_landing()`). No inline styles apart from per-word animation delays.
-- Motion is opt-in. An inline script in `<head>` adds `rsh-js` to `<html>`, and `rsh-motion` only when neither the system nor the accessibility toolbar asked for reduced motion. Every animated or pinned rule sits under `.rsh-motion`; without it the page is static and complete.
+- Motion is opt-in. An inline script in `<head>` adds `rsh-js` to `<html>`, and `rsh-motion` only when neither the system nor the accessibility toolbar asked for reduced motion. Every animated rule sits under `.rsh-motion`; without it the page is static and complete.
 - Scheduled jobs (WP-Cron): `rsh_lead_cleanup` daily; `rsh_lead_notify_retry` and `rsh_lead_webhook` as single events.
 
 ## Environments
@@ -63,6 +64,8 @@ The end-to-end scripts build on each other and share one rate-limit window: run 
 - Releases: bump `Version` in `style.css` and `RSH_VERSION` in `functions.php` together, and add a `CHANGELOG.md` entry.
 - After editing a file under `assets/css` or `assets/js`, run `php bin/build-assets.php` and commit the `.min` files.
 - The landing page must stay cacheable as one HTML for everyone: no nonce the script depends on, no per-visitor output, no cookie for guests. The form fetches its nonce over REST; the privacy notice decides on the client.
+- Small white text never sits on the base mauve or the base course colours; use `--rsh-mauve-strong` and the `strong` shade from `rsh_course_color()` (unit-tested for 4.5:1).
+- The long sections below the fold use `content-visibility: auto`; a test that measures them must scroll them into view first.
 - Never insert content above existing content after load (layout shift). The privacy notice, the toolbar and the sticky bar are all fixed.
 - Leads are personal data: never log their values. `rsh_audit()` takes IDs and field names only.
 - Composer in a sandbox without GitHub API access: `composer install --prefer-source` works for everything except `phpstan/phpstan`, which ships as a download only.

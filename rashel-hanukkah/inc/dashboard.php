@@ -248,6 +248,20 @@ function rsh_dashboard_settings() {
 			__( 'משמש לחישוב המחיר המקורי (המחוק) של קורס שלא הוזן לו מחיר מקורי.', 'rashel-hanukkah' )
 		);
 		rsh_dashboard_row(
+			'rsh-coupon',
+			__( 'קוד קופון', 'rashel-hanukkah' ),
+			rsh_dashboard_input(
+				'coupon',
+				rsh_coupon(),
+				array(
+					'class'     => 'small-text',
+					'dir'       => 'ltr',
+					'maxlength' => '20',
+				)
+			),
+			__( 'מוצג בסקשן ההטבות ובכל כרטיס קורס. אותיות לטיניות, ספרות ומקף בלבד. שדה ריק מסתיר את הקופון מהעמוד.', 'rashel-hanukkah' )
+		);
+		rsh_dashboard_row(
 			'rsh-phone',
 			__( 'טלפון', 'rashel-hanukkah' ),
 			rsh_dashboard_input( 'phone', rsh_phone(), array( 'dir' => 'ltr' ) ),
@@ -500,6 +514,13 @@ function rsh_validate_settings( array $input ) {
 	$discount = absint( $text( 'discount' ) );
 	if ( $discount >= 1 && $discount <= 99 ) {
 		$values['discount'] = $discount;
+	} else {
+		$refused = true;
+	}
+
+	$coupon = strtoupper( $text( 'coupon' ) );
+	if ( '' === $coupon || 1 === preg_match( '/^[A-Z0-9-]{2,20}$/', $coupon ) ) {
+		$values['coupon'] = $coupon;
 	} else {
 		$refused = true;
 	}

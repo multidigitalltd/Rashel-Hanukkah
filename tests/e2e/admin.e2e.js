@@ -68,6 +68,19 @@ async function frontHtml(browser) {
 	await page.fill('#rsh-phone', '054-9420423');
 	await save(page);
 
+	await page.fill('#rsh-coupon', 'light25');
+	await save(page);
+	const couponed = await frontHtml(browser);
+	check('a new coupon code reaches the benefits and every card, in capitals', (await page.inputValue('#rsh-coupon')) === 'LIGHT25' && (couponed.match(/rsh-coupon__code/g) || []).length === 12 && couponed.includes('LIGHT25') && !couponed.includes('>H50<'));
+	await page.fill('#rsh-coupon', 'H50 50%');
+	await save(page);
+	check('a coupon with anything but letters, digits and hyphens is refused', (await page.locator('.notice-warning').count()) === 1 && (await page.inputValue('#rsh-coupon')) === 'LIGHT25');
+	await page.fill('#rsh-coupon', '');
+	await save(page);
+	check('an empty coupon removes every mention of it from the page', !(await frontHtml(browser)).includes('rsh-coupon'));
+	await page.fill('#rsh-coupon', 'H50');
+	await save(page);
+
 	await page.goto(DASHBOARD + '&tab=texts', { waitUntil: 'domcontentloaded' });
 	await page.fill('#rsh-cta', 'להרשמה <script>alert(1)</script>');
 	await save(page);
@@ -108,6 +121,7 @@ async function frontHtml(browser) {
 	check('the eleven courses are listed for editing', (await page.locator('#the-list tr.type-rsh_course').count()) === 11);
 	await page.click('#the-list a.row-title:has-text("פינגר פוד")');
 	await page.waitForSelector('#rsh-course-price');
+	check('a course carries its syllabus for editing', (await page.inputValue('#rsh-course-syllabus')).includes('מאפים | ') && (await page.inputValue('#rsh-course-syllabus')).includes('* בונוס | '));
 	await page.fill('#rsh-course-price', '500');
 	await page.fill('#rsh-course-pay', 'https://evil.test/pay');
 	await Promise.all([page.waitForNavigation({ waitUntil: 'domcontentloaded' }), page.click('#publish')]);
