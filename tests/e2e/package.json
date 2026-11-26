@@ -1,0 +1,19 @@
+{
+  "name": "rashel-hanukkah-e2e",
+  "private": true,
+  "description": "End-to-end checks for the Rashel Hanukkah theme: Chromium, axe-core and Lighthouse against a throwaway WordPress.",
+  "license": "GPL-2.0-or-later",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "landing": "node landing.e2e.js",
+    "admin": "node admin.e2e.js",
+    "perf": "node perf.e2e.js"
+  },
+  "devDependencies": {
+    "axe-core": "4.14.0",
+    "lighthouse": "13.6.0",
+    "playwright": "1.63.0"
+  }
+}

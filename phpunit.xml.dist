@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<phpunit
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+	bootstrap="tests/unit/bootstrap.php"
+	colors="true"
+	failOnRisky="true"
+	failOnWarning="true"
+	beStrictAboutOutputDuringTests="true"
+	cacheResultFile=".phpunit.cache/result.cache"
+>
+	<testsuites>
+		<testsuite name="unit">
+			<directory suffix="Test.php">tests/unit</directory>
+		</testsuite>
+	</testsuites>
+	<coverage>
+		<include>
+			<file>rashel-hanukkah/inc/logic.php</file>
+		</include>
+	</coverage>
+</phpunit>

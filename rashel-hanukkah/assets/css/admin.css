@@ -1,0 +1,26 @@
+/*
+ * Rashel Hanukkah: the dashboard screen. Loaded only on that screen.
+ */
+.rsh-admin .form-table th { width: 260px; }
+.rsh-admin h2 { margin-top: 2em; padding-top: 1em; border-top: 1px solid #dcdcde; }
+.rsh-admin .nav-tab-wrapper + .rsh-admin__form > h2:first-of-type,
+.rsh-admin .nav-tab-wrapper + .rsh-admin__form > p + h2 { border-top: 0; }
+.rsh-admin__state { color: #50575e; font-style: italic; }
+.rsh-admin textarea { font-family: inherit; }
+.rsh-admin .widefat { margin-top: 1em; }
+
+/* The "media" tab: one replaceable file per row, and the gallery lists. */
+.rsh-media { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.rsh-media__thumb { width: 120px; height: 80px; object-fit: contain; background: #f0f0f1; border: 1px solid #c3c4c7; border-radius: 4px; }
+.rsh-media__file { padding: 6px 10px; background: #f0f0f1; border: 1px solid #c3c4c7; border-radius: 4px; direction: ltr; }
+.rsh-media__state { color: #50575e; font-style: italic; }
+.rsh-media__actions { display: flex; align-items: center; gap: 12px; }
+.rsh-media__reset[hidden] { display: none; }
+.rsh-media__reset, .rsh-list__remove { color: #b32d2e; }
+.rsh-list__items { margin: 16px 0; padding: 0; list-style: none; counter-reset: rsh-item; max-width: 760px; }
+.rsh-list__item { counter-increment: rsh-item; display: flex; align-items: center; gap: 14px; padding: 8px 12px; margin: 0 0 6px; background: #fff; border: 1px solid #c3c4c7; border-radius: 4px; }
+.rsh-list__item::before { content: counter(rsh-item); min-width: 1.5em; color: #50575e; font-weight: 600; }
+.rsh-list__thumb { width: 64px; height: 64px; object-fit: cover; border-radius: 4px; background: #f0f0f1; }
+.rsh-list__alt { flex: 1; min-width: 0; color: #50575e; }
+.rsh-list__actions { display: flex; align-items: center; gap: 8px; }
+.rsh-list__item:first-child [data-rsh-list-up], .rsh-list__item:last-child [data-rsh-list-down] { visibility: hidden; }

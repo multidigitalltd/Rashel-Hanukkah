@@ -1,0 +1,745 @@
+/**
+ * Rashel Hanukkah: landing page behaviour.
+ *
+ * Everything here is an enhancement. The page is complete without this file:
+ * the three opening questions are listed, both course lists are visible, the
+ * testimonials scroll sideways on their own and the countdown shows the time
+ * the page was rendered.
+ *
+ * Motion (the rotating questions, the cross-fading photos, the reveals, the
+ * heading effect, the confetti) runs only while <html> carries "rsh-motion".
+ * The inline boot script sets it when neither the system nor the
+ * accessibility toolbar asked for reduced motion, and the toolbar's "stop
+ * animations" removes it on the spot.
+ *
+ * Expects window.rshLanding = { deadline } (Unix milliseconds).
+ */
+(function () {
+	'use strict';
+
+	var root = document.documentElement;
+	var config = window.rshLanding || {};
+
+	/**
+	 * May the page move right now? Read every time, because the accessibility
+	 * toolbar can switch motion off and on while the page is open.
+	 *
+	 * @return {boolean}
+	 */
+	function motion() {
+		return root.classList.contains('rsh-motion');
+	}
+
+	/**
+	 * Run a function for every element that matches a selector.
+	 *
+	 * @param {string}   selector CSS selector.
+	 * @param {Function} fn       Called with the element and its index.
+	 */
+	function each(selector, fn) {
+		Array.prototype.forEach.call(document.querySelectorAll(selector), fn);
+	}
+
+	/* ------------------------------------------------------------------ */
+	/* Countdown                                                           */
+	/* ------------------------------------------------------------------ */
+
+	/**
+	 * Zero-pad a number to two digits.
+	 *
+	 * @param {number} value Number.
+	 * @return {string}
+	 */
+	function pad(value) {
+		return (value < 10 ? '0' : '') + value;
+	}
+
+	function tick() {
+		var left = Math.max(0, Math.floor((config.deadline - Date.now()) / 1000));
+		var days = Math.floor(left / 86400);
+		left -= days * 86400;
+		var hours = Math.floor(left / 3600);
+		left -= hours * 3600;
+		var minutes = Math.floor(left / 60);
+		var parts = { days: pad(days), hours: pad(hours), minutes: pad(minutes), seconds: pad(left - minutes * 60) };
+
+		each('[data-rsh-unit]', function (node) {
+			var value = parts[node.getAttribute('data-rsh-unit')];
+			if (value !== undefined && node.textContent !== value) {
+				node.textContent = value;
+			}
+		});
+	}
+
+	if (typeof config.deadline === 'number' && config.deadline > 0) {
+		tick();
+		window.setInterval(tick, 1000);
+	}
+
+	/* ------------------------------------------------------------------ */
+	/* Opening: one question at a time                                     */
+	/* ------------------------------------------------------------------ */
+
+	(function hook() {
+		var DURATION = 5200;
+		var box = document.querySelector('[data-rsh-hook]');
+		var nav = document.querySelector('[data-rsh-hook-nav]');
+		if (!box || !nav) {
+			return;
+		}
+
+		var questions = Array.prototype.slice.call(box.querySelectorAll('[data-rsh-q]'));
+		var dots = Array.prototype.slice.call(nav.querySelectorAll('[data-rsh-dot]'));
+		var pause = nav.querySelector('[data-rsh-hook-pause]');
+		var current = 0;
+		var timer = null;
+		var stopped = false;
+
+		/**
+		 * Show one question and mark its dot.
+		 *
+		 * @param {number} index Question to show.
+		 */
+		function show(index) {
+			current = (index + questions.length) % questions.length;
+
+			questions.forEach(function (question, n) {
+				question.classList.toggle('is-active', n === current);
+				question.classList.toggle('is-past', n < current);
+			});
+
+			dots.forEach(function (dot, n) {
+				// Restart the fill of the dot that becomes active.
+				dot.classList.remove('is-active');
+				dot.classList.toggle('is-done', n < current);
+				if (n === current) {
+					void dot.offsetWidth;
+					dot.classList.add('is-active');
+					dot.setAttribute('aria-current', 'true');
+				} else {
+					dot.removeAttribute('aria-current');
+				}
+			});
+		}
+
+		function schedule() {
+			window.clearTimeout(timer);
+			if (stopped || !motion()) {
+				return;
+			}
+			timer = window.setTimeout(function () {
+				show(current + 1);
+				schedule();
+			}, DURATION);
+		}
+
+		/**
+		 * Stop or resume the rotation, for good (the pause button) or for a
+		 * moment (pointer or focus resting on the questions).
+		 *
+		 * @param {boolean} value Whether the rotation is stopped.
+		 */
+		function setStopped(value) {
+			var resumed = stopped && !value;
+			stopped = value;
+			box.classList.toggle('is-paused', value);
+			if (resumed) {
+				// Start the current question's time again, so the dot and the timer agree.
+				show(current);
+			}
+			schedule();
+		}
+
+		dots.forEach(function (dot, n) {
+			dot.addEventListener('click', function () {
+				show(n);
+				schedule();
+			});
+		});
+
+		if (pause) {
+			pause.addEventListener('click', function () {
+				var pressed = pause.getAttribute('aria-pressed') !== 'true';
+				pause.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+				pause.setAttribute('aria-label', pause.getAttribute(pressed ? 'data-rsh-label-play' : 'data-rsh-label-pause'));
+				setStopped(pressed);
+			});
+		}
+
+		/**
+		 * Is the rotation paused by the button? Hover and focus must not undo that.
+		 *
+		 * @return {boolean}
+		 */
+		function held() {
+			return !!pause && pause.getAttribute('aria-pressed') === 'true';
+		}
+
+		[box, nav].forEach(function (area) {
+			area.addEventListener('mouseenter', function () { setStopped(true); });
+			area.addEventListener('mouseleave', function () { setStopped(held()); });
+			area.addEventListener('focusin', function () { setStopped(true); });
+			area.addEventListener('focusout', function () { setStopped(held()); });
+		});
+
+		// A hidden tab does not need to keep turning.
+		document.addEventListener('visibilitychange', function () {
+			if (document.hidden) {
+				window.clearTimeout(timer);
+			} else {
+				schedule();
+			}
+		});
+
+		// The toolbar can switch motion on and off: follow it.
+		new MutationObserver(schedule).observe(root, { attributes: true, attributeFilter: ['class'] });
+
+		show(0);
+		schedule();
+	})();
+
+	/* ------------------------------------------------------------------ */
+	/* Opening: the collage, two photos per tile, cross-fading             */
+	/* ------------------------------------------------------------------ */
+
+	(function mosaic() {
+		var tiles = Array.prototype.slice.call(document.querySelectorAll('[data-rsh-tile]'));
+		if (!tiles.length) {
+			return;
+		}
+
+		var loaded = false;
+		var slot = 0;
+
+		function load() {
+			if (loaded) {
+				return;
+			}
+			loaded = true;
+			// The second photo of each tile arrives only now, well after the first screen has painted.
+			each('[data-rsh-src]', function (image) {
+				var srcset = image.getAttribute('data-rsh-srcset');
+				if (srcset) {
+					image.srcset = srcset;
+				}
+				image.src = image.getAttribute('data-rsh-src');
+				image.removeAttribute('data-rsh-src');
+				image.removeAttribute('data-rsh-srcset');
+			});
+		}
+
+		function swap() {
+			if (!loaded || !motion() || document.hidden) {
+				return;
+			}
+			slot++;
+			tiles.forEach(function (tile, n) {
+				var images = tile.querySelectorAll('.rsh-tile__img');
+				var on = (slot + n) % 2;
+				// Never fade to a photo that has not arrived yet.
+				if (images.length < 2 || !images[on].complete || !images[on].naturalWidth) {
+					return;
+				}
+				images[on].classList.add('is-on');
+				images[1 - on].classList.remove('is-on');
+			});
+		}
+
+		// The second photos are not needed before the first swap, so they wait
+		// two seconds after the page has loaded and stay out of its way.
+		function later() {
+			window.setTimeout(load, 2000);
+		}
+
+		if (document.readyState === 'complete') {
+			later();
+		} else {
+			window.addEventListener('load', later);
+		}
+		window.setInterval(swap, 4500);
+	})();
+
+	/* ------------------------------------------------------------------ */
+	/* Course tabs                                                         */
+	/* ------------------------------------------------------------------ */
+
+	(function tabs() {
+		var list = document.querySelector('[data-rsh-tabs] [role="tablist"]');
+		if (!list) {
+			return;
+		}
+
+		var buttons = Array.prototype.slice.call(list.querySelectorAll('[role="tab"]'));
+
+		/**
+		 * Show one category and hide the other.
+		 *
+		 * @param {HTMLElement} active The tab to select.
+		 * @param {boolean}     focus  Move focus to it (keyboard navigation).
+		 */
+		function select(active, focus) {
+			buttons.forEach(function (button) {
+				var on = button === active;
+				var panel = document.getElementById(button.getAttribute('aria-controls'));
+
+				button.setAttribute('aria-selected', on ? 'true' : 'false');
+				button.tabIndex = on ? 0 : -1;
+				if (panel) {
+					panel.hidden = !on;
+				}
+			});
+
+			if (focus) {
+				active.focus();
+			}
+		}
+
+		buttons.forEach(function (button, index) {
+			button.addEventListener('click', function () {
+				select(button, false);
+			});
+
+			button.addEventListener('keydown', function (event) {
+				var next = null;
+
+				// Right-to-left: the left arrow moves to the next tab.
+				if (event.key === 'ArrowLeft') {
+					next = buttons[(index + 1) % buttons.length];
+				} else if (event.key === 'ArrowRight') {
+					next = buttons[(index - 1 + buttons.length) % buttons.length];
+				} else if (event.key === 'Home') {
+					next = buttons[0];
+				} else if (event.key === 'End') {
+					next = buttons[buttons.length - 1];
+				}
+
+				if (next) {
+					event.preventDefault();
+					select(next, true);
+				}
+			});
+		});
+
+		select(buttons[0], false);
+	})();
+
+	/* ------------------------------------------------------------------ */
+	/* Syllabus dialogs                                                    */
+	/* ------------------------------------------------------------------ */
+
+	// A native <dialog>: showModal() traps focus, Escape closes it and focus
+	// returns to the button that opened it. Only the backdrop click is ours.
+	each('[data-rsh-syl]', function (button) {
+		var dialog = document.getElementById(button.getAttribute('data-rsh-syl'));
+		if (!dialog || typeof dialog.showModal !== 'function') {
+			button.hidden = true;
+			return;
+		}
+
+		button.addEventListener('click', function () {
+			dialog.showModal();
+			root.style.overflow = 'hidden';
+		});
+	});
+
+	each('dialog.rsh-syl', function (dialog) {
+		dialog.addEventListener('click', function (event) {
+			if (event.target === dialog) {
+				dialog.close();
+			}
+		});
+		dialog.addEventListener('close', function () {
+			root.style.overflow = '';
+		});
+	});
+
+	/* ------------------------------------------------------------------ */
+	/* Graduates' work: "show more"                                        */
+	/* ------------------------------------------------------------------ */
+
+	// Every photo is in the page. The grid starts with the first nine (six
+	// on a phone) and each press opens the next step; focus moves to the
+	// first photo that appeared, so a keyboard or screen-reader user lands
+	// on the new content.
+	(function works() {
+		var box = document.querySelector('[data-rsh-works]');
+		if (!box) {
+			return;
+		}
+
+		var grid = box.querySelector('[data-rsh-works-grid]');
+		var button = box.querySelector('[data-rsh-works-more]');
+		var items = Array.prototype.slice.call(grid.children);
+		var phone = window.matchMedia('(max-width: 959px)');
+
+		function shut() {
+			return items.filter(function (item) {
+				return window.getComputedStyle(item).display === 'none';
+			});
+		}
+
+		function update() {
+			if (button) {
+				button.parentNode.hidden = shut().length === 0;
+			}
+		}
+
+		function openNextBatch() {
+			var next = grid.querySelector('.is-shut');
+			if (!next) {
+				return;
+			}
+
+			var batch = next.getAttribute('data-rsh-batch');
+			items.forEach(function (item) {
+				if (item.getAttribute('data-rsh-batch') === batch) {
+					item.classList.remove('is-shut');
+				}
+			});
+		}
+
+		update();
+		phone.addEventListener('change', update);
+
+		if (!button) {
+			return;
+		}
+
+		button.addEventListener('click', function () {
+			var before = shut();
+			var firstStep = grid.classList.contains('is-first');
+
+			grid.classList.remove('is-first');
+			if (!firstStep || !phone.matches || before.length === shut().length) {
+				openNextBatch();
+			}
+
+			var after = shut();
+			var appeared = before.filter(function (item) {
+				return after.indexOf(item) === -1;
+			})[0];
+
+			update();
+
+			if (appeared) {
+				appeared.setAttribute('tabindex', '-1');
+				appeared.focus();
+			}
+		});
+	})();
+
+	/* ------------------------------------------------------------------ */
+	/* Testimonials carousel                                               */
+	/* ------------------------------------------------------------------ */
+
+	(function reviews() {
+		var box = document.querySelector('[data-rsh-reviews]');
+		if (!box) {
+			return;
+		}
+
+		var track = box.querySelector('[data-rsh-reviews-track]');
+		var bar = box.querySelector('[data-rsh-reviews-bar]');
+		var cards = Array.prototype.slice.call(track.children);
+		var index = 0;
+		var snapTimer = null;
+
+		function progress() {
+			var max = track.scrollWidth - track.clientWidth;
+			var share = max > 0 ? Math.abs(track.scrollLeft) / max : 0;
+			if (bar) {
+				bar.style.width = Math.max(12, Math.round(share * 100)) + '%';
+			}
+		}
+
+		/**
+		 * Move one card back or forward.
+		 *
+		 * @param {number} direction -1 or 1.
+		 */
+		function go(direction) {
+			if (!cards.length) {
+				return;
+			}
+
+			index = Math.max(0, Math.min(cards.length - 1, index + direction));
+			var target = track.scrollLeft + (cards[index].getBoundingClientRect().right - track.getBoundingClientRect().right);
+
+			// Snapping would fight the smooth scroll: off while it runs.
+			track.style.scrollSnapType = 'none';
+			track.scrollTo({ left: target, behavior: motion() ? 'smooth' : 'auto' });
+			window.clearTimeout(snapTimer);
+			snapTimer = window.setTimeout(function () {
+				track.style.scrollSnapType = '';
+			}, 700);
+		}
+
+		var prev = box.querySelector('[data-rsh-reviews-prev]');
+		var next = box.querySelector('[data-rsh-reviews-next]');
+		if (prev) {
+			prev.addEventListener('click', function () { go(-1); });
+		}
+		if (next) {
+			next.addEventListener('click', function () { go(1); });
+		}
+
+		track.addEventListener('scroll', function () {
+			progress();
+			// Keep the arrows in step with a scroll made by touch, wheel or keyboard.
+			var edge = track.getBoundingClientRect().right;
+			var nearest = 0;
+			var distance = Infinity;
+			cards.forEach(function (card, n) {
+				var gap = Math.abs(card.getBoundingClientRect().right - edge);
+				if (gap < distance) {
+					distance = gap;
+					nearest = n;
+				}
+			});
+			index = nearest;
+		}, { passive: true });
+
+		// No measuring at start-up: it would force the layout of a section far
+		// below the fold. The bar's first width comes from the stylesheet.
+	})();
+
+	/* ------------------------------------------------------------------ */
+	/* Sticky bottom bar                                                   */
+	/* ------------------------------------------------------------------ */
+
+	var bar = document.querySelector('[data-rsh-bar]');
+	var barVisible = false;
+	var queued = false;
+
+	function updateBar() {
+		if (!bar) {
+			return;
+		}
+
+		var visible = window.scrollY > 900;
+		if (visible === barVisible) {
+			return;
+		}
+
+		barVisible = visible;
+		bar.classList.toggle('is-visible', visible);
+		// The toolbar launcher, the privacy notice and the footer make room for the bar.
+		root.style.setProperty('--rsh-bar-space', visible ? bar.offsetHeight + 'px' : '0px');
+	}
+
+	function onScroll() {
+		if (queued) {
+			return;
+		}
+		queued = true;
+		window.requestAnimationFrame(function () {
+			queued = false;
+			updateBar();
+		});
+	}
+
+	window.addEventListener('scroll', onScroll, { passive: true });
+	window.addEventListener('resize', onScroll, { passive: true });
+	onScroll();
+
+	/* ------------------------------------------------------------------ */
+	/* Confetti                                                            */
+	/* ------------------------------------------------------------------ */
+
+	/**
+	 * The slow confetti that falls over the announcement: 34 pieces, laid out
+	 * by the design's own seeded generator so they land where the design has them.
+	 *
+	 * @param {HTMLElement} holder The layer that receives the pieces.
+	 */
+	function fallingConfetti(holder) {
+		var seed = 2 * 9301 + 49297;
+		var colors = ['#ffe500', '#f6e5c0', '#ffffff', '#e8bdc7', '#d4a94e'];
+
+		/**
+		 * Next number of the seeded sequence, between 0 and 1.
+		 *
+		 * @return {number}
+		 */
+		function random() {
+			seed = (seed * 9301 + 49297) % 233280;
+			return seed / 233280;
+		}
+
+		for (var n = 0; n < 34; n++) {
+			var round = random() > 0.55;
+			var width = 6 + Math.round(random() * 8);
+			var piece = document.createElement('span');
+
+			piece.style.left = Math.round(random() * 100) + '%';
+			piece.style.width = width + 'px';
+			piece.style.height = (round ? width : Math.round(width * 1.8)) + 'px';
+			piece.style.borderRadius = round ? '50%' : '2px';
+			piece.style.background = colors[Math.floor(random() * colors.length)];
+			piece.style.animationDuration = [9, 12, 15][Math.floor(random() * 3)] + 's';
+			piece.style.animationDelay = Math.round(random() * 12000) + 'ms';
+			holder.appendChild(piece);
+		}
+	}
+
+	/**
+	 * One burst of confetti from three points, about three seconds, drawn on a
+	 * canvas that removes itself.
+	 */
+	function burst() {
+		var canvas = document.createElement('canvas');
+		var context = canvas.getContext('2d');
+		if (!context) {
+			return;
+		}
+
+		var ratio = Math.min(2, window.devicePixelRatio || 1);
+		var width = window.innerWidth;
+		var height = window.innerHeight;
+		var colors = ['#ffe500', '#a86b79', '#f6e5c0', '#667a65', '#4f8fa3', '#ffffff', '#7d4a57'];
+		var pieces = [];
+
+		canvas.setAttribute('aria-hidden', 'true');
+		canvas.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:9999;';
+		canvas.width = width * ratio;
+		canvas.height = height * ratio;
+		context.scale(ratio, ratio);
+		document.body.appendChild(canvas);
+
+		[[width * 0.2, height * 0.55], [width * 0.5, height * 0.45], [width * 0.8, height * 0.55]].forEach(function (origin) {
+			for (var n = 0; n < 70; n++) {
+				var angle = Math.random() * Math.PI * 2;
+				var speed = 6 + Math.random() * 10;
+				pieces.push({
+					x: origin[0], y: origin[1],
+					vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 7,
+					r: Math.random() * 6.28, vr: (Math.random() - 0.5) * 0.35,
+					w: 6 + Math.random() * 7, h: 3 + Math.random() * 5,
+					c: colors[n % colors.length], round: Math.random() < 0.25
+				});
+			}
+		});
+
+		var start = window.performance.now();
+
+		/**
+		 * Draw one frame.
+		 *
+		 * @param {number} now Frame time.
+		 */
+		function frame(now) {
+			var seconds = (now - start) / 1000;
+
+			// The toolbar may have stopped motion mid-burst.
+			if (seconds >= 3 || !motion()) {
+				canvas.remove();
+				return;
+			}
+
+			context.clearRect(0, 0, width, height);
+			context.globalAlpha = Math.max(0, 1 - Math.max(0, seconds - 1.8) / 1.2);
+
+			pieces.forEach(function (piece) {
+				piece.vx *= 0.985;
+				piece.vy = piece.vy * 0.985 + 0.32;
+				piece.x += piece.vx;
+				piece.y += piece.vy;
+				piece.r += piece.vr;
+
+				context.save();
+				context.translate(piece.x, piece.y);
+				context.rotate(piece.r);
+				context.fillStyle = piece.c;
+				if (piece.round) {
+					context.beginPath();
+					context.arc(0, 0, piece.h, 0, 6.28);
+					context.fill();
+				} else {
+					context.scale(1, Math.cos(piece.r * 2));
+					context.fillRect(-piece.w / 2, -piece.h / 2, piece.w, piece.h);
+				}
+				context.restore();
+			});
+
+			window.requestAnimationFrame(frame);
+		}
+
+		window.requestAnimationFrame(frame);
+	}
+
+	/* ------------------------------------------------------------------ */
+	/* Reveals and the heading effect                                      */
+	/* ------------------------------------------------------------------ */
+
+	var holder = document.querySelector('[data-rsh-confetti]');
+	if (holder && motion()) {
+		fallingConfetti(holder);
+	}
+
+	// Video posters load when their video comes near the viewport.
+	(function posters() {
+		function show(video) {
+			video.poster = video.getAttribute('data-rsh-poster');
+			video.removeAttribute('data-rsh-poster');
+		}
+
+		if (!('IntersectionObserver' in window)) {
+			each('[data-rsh-poster]', show);
+			return;
+		}
+
+		var near = new IntersectionObserver(function (entries) {
+			entries.forEach(function (entry) {
+				if (entry.isIntersecting) {
+					show(entry.target);
+					near.unobserve(entry.target);
+				}
+			});
+		}, { rootMargin: '800px 0px' });
+
+		each('[data-rsh-poster]', function (video) {
+			near.observe(video);
+		});
+	})();
+
+	// Observed even while motion is off, so content is already revealed if the visitor turns it back on.
+	if (!('IntersectionObserver' in window)) {
+		each('[data-rsh-reveal]', function (node) {
+			node.classList.add('is-in');
+		});
+		each('[data-rsh-h1]', function (node) {
+			node.classList.add('is-lit');
+		});
+		return;
+	}
+
+	var reveal = new IntersectionObserver(function (entries) {
+		entries.forEach(function (entry) {
+			if (entry.isIntersecting) {
+				entry.target.classList.add('is-in');
+				reveal.unobserve(entry.target);
+			}
+		});
+	}, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+	each('[data-rsh-reveal]', function (node) {
+		reveal.observe(node);
+	});
+
+	var heading = new IntersectionObserver(function (entries) {
+		entries.forEach(function (entry) {
+			if (entry.isIntersecting) {
+				entry.target.classList.add('is-lit');
+				heading.unobserve(entry.target);
+				// Once, the first time the heading comes into view.
+				if (motion()) {
+					burst();
+				}
+			}
+		});
+	}, { threshold: 0.1 });
+
+	each('[data-rsh-h1]', function (node) {
+		heading.observe(node);
+	});
+})();
