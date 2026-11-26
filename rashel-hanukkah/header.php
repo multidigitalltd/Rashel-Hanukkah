@@ -29,10 +29,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<div class="rsh-wrap rsh-header__in">
 			<a class="rsh-header__brand" href="<?php echo esc_url( home_url( '/' ) ); ?>">
 				<?php
-				rsh_image(
-					'rashel-logo.png',
-					270,
-					191,
+				rsh_slot_image(
+					'logo',
 					array(
 						'class'   => 'rsh-logo rsh-logo--light',
 						'alt'     => get_bloginfo( 'name' ),

@@ -27,6 +27,7 @@ function rsh_dashboard_tabs() {
 	return array(
 		'settings'    => __( 'הגדרות', 'rashel-hanukkah' ),
 		'texts'       => __( 'טקסטים', 'rashel-hanukkah' ),
+		'media'       => __( 'תמונות וגלריות', 'rashel-hanukkah' ),
 		'connections' => __( 'חיבורים ולידים', 'rashel-hanukkah' ),
 		'log'         => __( 'יומן פעולות', 'rashel-hanukkah' ),
 	);
@@ -117,6 +118,8 @@ function rsh_dashboard_page() {
 				<?php
 				if ( 'texts' === $tab ) {
 					rsh_dashboard_texts();
+				} elseif ( 'media' === $tab ) {
+					rsh_dashboard_media();
 				} elseif ( 'connections' === $tab ) {
 					rsh_dashboard_connections();
 				} else {
@@ -662,7 +665,7 @@ function rsh_dashboard_save() {
 
 	$tab = isset( $_POST['rsh_tab'] ) ? sanitize_key( wp_unslash( $_POST['rsh_tab'] ) ) : '';
 
-	if ( ! in_array( $tab, array( 'settings', 'texts', 'connections' ), true ) ) {
+	if ( ! in_array( $tab, array( 'settings', 'texts', 'media', 'connections' ), true ) ) {
 		wp_die( esc_html__( 'בקשה לא תקינה.', 'rashel-hanukkah' ), '', array( 'response' => 400 ) );
 	}
 
@@ -682,6 +685,8 @@ function rsh_dashboard_save() {
 			update_option( 'rsh_content', $after );
 			rsh_audit( 'content', 0, implode( ', ', $keys ) );
 		}
+	} elseif ( 'media' === $tab ) {
+		$refused = rsh_dashboard_save_media( $input );
 	} else {
 		$result  = 'settings' === $tab ? rsh_validate_settings( $input ) : rsh_validate_connections( $input );
 		$refused = $result['refused'];

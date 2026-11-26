@@ -31,9 +31,9 @@ $rsh_videos = array(
 				<?php $rsh_captions = rsh_captions_url( $rsh_video ); ?>
 				<div class="rsh-video" data-rsh-reveal>
 					<video controls playsinline preload="metadata" width="<?php echo esc_attr( (string) $rsh_info[1] ); ?>" height="480"
-						poster="<?php echo esc_url( rsh_asset( 'assets/img/testimonials/' . $rsh_video . '-poster.webp' ) ); ?>"
+						poster="<?php echo esc_url( rsh_slot_url( 'poster_' . $rsh_video ) ); ?>"
 						aria-label="<?php echo esc_attr( rsh_text( $rsh_info[0] ) ); ?>">
-						<source src="<?php echo esc_url( rsh_asset( 'assets/video/' . $rsh_video . '.mp4' ) ); ?>" type="video/mp4">
+						<source src="<?php echo esc_url( rsh_slot_url( 'video_' . $rsh_video ) ); ?>" type="video/mp4">
 						<?php if ( '' !== $rsh_captions ) : ?>
 							<track kind="captions" srclang="he" label="<?php esc_attr_e( 'עברית', 'rashel-hanukkah' ); ?>" src="<?php echo esc_url( $rsh_captions ); ?>" default>
 						<?php endif; ?>
@@ -55,7 +55,22 @@ $rsh_videos = array(
 				<?php foreach ( rsh_testimonials() as $rsh_item ) : ?>
 					<li class="rsh-review">
 						<div class="rsh-review__shot">
-							<?php rsh_image( $rsh_item['file'], $rsh_item['width'], $rsh_item['height'], array( 'alt' => rsh_text( 'wall_alt' ) ) ); ?>
+							<?php
+							if ( $rsh_item['id'] ) {
+								echo wp_get_attachment_image(
+									$rsh_item['id'],
+									'medium_large',
+									false,
+									array(
+										'alt'     => rsh_attachment_alt( $rsh_item['id'], rsh_text( 'wall_alt' ) ),
+										'loading' => 'lazy',
+										'sizes'   => '(min-width: 640px) 360px, 80vw',
+									)
+								);
+							} else {
+								rsh_image( $rsh_item['file'], $rsh_item['width'], $rsh_item['height'], array( 'alt' => rsh_text( 'wall_alt' ) ) );
+							}
+							?>
 						</div>
 						<p class="rsh-review__stars"><span aria-hidden="true">★★★★★</span><span class="rsh-sr-only"><?php rsh_the_text( 'wall_stars' ); ?></span></p>
 					</li>

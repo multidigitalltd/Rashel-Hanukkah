@@ -44,6 +44,8 @@ The end-to-end scripts build on each other and share one rate-limit window: run 
   - `inc/settings.php`: plain settings (`rsh_settings`) and sealed secrets (`rsh_secrets`, never autoloaded). The sealing key is `RSH_KEY` from `wp-config.php`, or derived from the site salts. A `wp-config.php` constant always wins and locks the field.
   - `inc/courses.php`: post type `rsh_course`. The whole list is one query, cached in the transient `rsh_courses` until a course changes. Payment links are kept only on allowed hosts (`RSH_PAY_HOSTS`, filter `rsh_pay_hosts`).
   - `inc/leads.php`, `inc/leads-crm.php`: post type `rsh_lead` with its own capability. Public REST routes `rashel/v1/nonce` and `rashel/v1/lead`, plus an `admin-post.php` fallback without JavaScript. One function validates and stores: `rsh_process_lead()`.
+  - `inc/media.php`: the replaceable photos and videos ("slots") and the two gallery lists. Choices are attachment IDs in the option `rsh_media`; a slot without a choice prints the bundled file. Templates print through `rsh_slot_image()` and `rsh_slot_url()`.
+  - `inc/dashboard-media.php` (admin only): the "photos and galleries" tab; `assets/js/admin.js` opens the media library.
   - `inc/dashboard.php` (admin only): the "ראשל חנוכה" screen. One save handler, `admin_post_rsh_save`.
   - `inc/audit.php`: one log for settings, copy and leads, in the option `rsh_audit`.
   - `inc/course-data.php`: the eleven default courses with their syllabus, as plain data.

@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<span class="rsh-about__block" aria-hidden="true"></span>
 			<span class="rsh-about__star" aria-hidden="true">✦</span>
 			<div class="rsh-about__photo">
-				<?php rsh_image( 'rashel-portrait.webp', 640, 960, array( 'alt' => rsh_text( 'portrait_alt' ) ) ); ?>
+				<?php rsh_slot_image( 'portrait', array( 'alt' => rsh_text( 'portrait_alt' ) ) ); ?>
 			</div>
 		</div>
 		<div class="rsh-about__text">

@@ -300,5 +300,32 @@ function rsh_admin_assets( $hook ) {
 	$file = rsh_asset_file( 'assets/css/admin.css' );
 
 	wp_enqueue_style( 'rsh-admin', rsh_asset( $file ), array(), rsh_asset_version( $file ) );
+
+	if ( 'media' !== rsh_dashboard_tab() ) {
+		return;
+	}
+
+	wp_enqueue_media();
+
+	$script = rsh_asset_file( 'assets/js/admin.js' );
+
+	wp_enqueue_script( 'rsh-admin', rsh_asset( $script ), array( 'media-editor', 'wp-a11y' ), rsh_asset_version( $script ), true );
+	wp_localize_script(
+		'rsh-admin',
+		'rshAdmin',
+		array(
+			'pickImage'  => __( 'בחירת תמונה', 'rashel-hanukkah' ),
+			'pickVideo'  => __( 'בחירת סרטון', 'rashel-hanukkah' ),
+			'pickImages' => __( 'בחירת תמונות לגלריה', 'rashel-hanukkah' ),
+			'use'        => __( 'שימוש בקובץ', 'rashel-hanukkah' ),
+			'fromMedia'  => __( 'קובץ מספריית המדיה', 'rashel-hanukkah' ),
+			'original'   => __( 'הקובץ המקורי של העיצוב', 'rashel-hanukkah' ),
+			'noAlt'      => __( 'אין תיאור לתמונה', 'rashel-hanukkah' ),
+			'moved'      => __( 'התמונה הוזזה.', 'rashel-hanukkah' ),
+			'removed'    => __( 'התמונה הוסרה מהרשימה.', 'rashel-hanukkah' ),
+			'added'      => __( 'התמונות נוספו לרשימה.', 'rashel-hanukkah' ),
+			'full'       => __( 'הרשימה מלאה.', 'rashel-hanukkah' ),
+		)
+	);
 }
 add_action( 'admin_enqueue_scripts', 'rsh_admin_assets' );

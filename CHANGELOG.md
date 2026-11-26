@@ -2,6 +2,13 @@
 
 All notable changes to this project are listed here. Versions follow [Semantic Versioning](https://semver.org/); the theme version lives in `rashel-hanukkah/style.css` and `RSH_VERSION` and the two are bumped together.
 
+## 2.1.0: 2026-11-26
+
+### Added
+
+- A "graduates' work" photo grid under the testimonials, shown once photos are chosen in the dashboard. Nine photos at a time (six on a phone) with a "show more" button; every photo is visible without JavaScript.
+- A "photos and galleries" tab in the dashboard: replace any photo or video of the page from the media library, return to the bundled file, and manage the work gallery and the testimonial screenshots (add, reorder, remove). Every ID is checked on the server and changes are written to the audit log.
+
 ## 2.0.0: 2026-11-25
 
 The landing page rebuilt from design handoff v11. The dashboard, the lead store and the security model are unchanged.

@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'RSH_VERSION', '2.0.0' );
+define( 'RSH_VERSION', '2.1.0' );
 define( 'RSH_DIR', get_template_directory() );
 define( 'RSH_URI', get_template_directory_uri() );
 
@@ -22,6 +22,7 @@ require_once RSH_DIR . '/inc/settings.php';
 require_once RSH_DIR . '/inc/audit.php';
 require_once RSH_DIR . '/inc/courses.php';
 require_once RSH_DIR . '/inc/template-tags.php';
+require_once RSH_DIR . '/inc/media.php';
 require_once RSH_DIR . '/inc/assets.php';
 require_once RSH_DIR . '/inc/security.php';
 require_once RSH_DIR . '/inc/accessibility.php';
@@ -35,6 +36,7 @@ require_once RSH_DIR . '/inc/install.php';
 if ( is_admin() ) {
 	// The dashboard is an admin-only screen; never parsed on a front-end request.
 	require_once RSH_DIR . '/inc/dashboard.php';
+	require_once RSH_DIR . '/inc/dashboard-media.php';
 }
 
 /**

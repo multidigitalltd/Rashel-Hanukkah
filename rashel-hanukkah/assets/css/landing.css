@@ -557,6 +557,43 @@ html:not(.rsh-js) .rsh-card__syl { display: none; }
 }
 
 /* ============================================================
+   GRADUATES' WORK
+   Four columns (two on a phone). With JavaScript the grid opens
+   nine photos at a time; on a phone the first step shows six.
+   ============================================================ */
+.rsh-works { background: var(--rsh-beige); padding: 110px 0 120px; }
+.rsh-works__ttl { margin-bottom: 44px; font-family: var(--rsh-font-head); font-weight: 400; font-size: clamp(2.125rem, 4vw, 3.375rem); line-height: 1.05; color: var(--rsh-mauve-deep); }
+.rsh-works__grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 250px; grid-auto-flow: dense; gap: 20px; }
+.rsh-work { border-radius: 26px; overflow: hidden; background: var(--rsh-photo); box-shadow: 0 16px 36px rgba(125, 74, 87, .16); }
+.rsh-work:focus-visible { outline-offset: 4px; }
+.rsh-work--tall { grid-row: span 2; }
+.rsh-work--wide { grid-column: span 2; }
+.rsh-work img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.rsh-js .rsh-work.is-shut { display: none; }
+.rsh-works__more { display: none; justify-content: center; margin-top: 36px; }
+.rsh-js .rsh-works__more { display: flex; }
+.rsh-works__more[hidden] { display: none; }
+.rsh-works__btn {
+  display: inline-flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 34px; border-radius: 999px;
+  border: 2px solid var(--rsh-mauve-deep); background: transparent; color: var(--rsh-mauve-deep);
+  font: inherit; font-weight: 700; font-size: 1.0625rem; cursor: pointer; transition: background-color .25s ease, color .25s ease;
+}
+.rsh-works__btn:hover { background: var(--rsh-mauve-deep); color: var(--rsh-white); }
+.rsh-works__btn span { font-size: 1.25rem; line-height: 1; }
+.rsh-works__foot { display: flex; justify-content: center; margin-top: 28px; }
+
+@media (max-width: 959px) {
+  .rsh-works { padding: 72px 0 80px; }
+  .rsh-works__ttl { margin-bottom: 28px; }
+  .rsh-works__grid { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 170px; gap: 12px; }
+  .rsh-work { border-radius: 20px; }
+  .rsh-works__more { margin-top: 24px; }
+  .rsh-js .rsh-works__grid.is-first .rsh-work--tall:nth-child(6),
+  .rsh-js .rsh-works__grid.is-first .rsh-work:nth-child(n+8),
+  .rsh-js .rsh-works__grid--plain.is-first .rsh-work:nth-child(7) { display: none; }
+}
+
+/* ============================================================
    PERFORMANCE
    The long sections below the fold are laid out and painted only
    when they come near the viewport, which keeps the first layout

@@ -326,6 +326,26 @@ function rsh_content_schema() {
 				),
 			),
 		),
+		'works'        => array(
+			'label'  => __( 'עבודות של תלמידות', 'rashel-hanukkah' ),
+			'fields' => array(
+				'works_ttl'  => array(
+					'label'   => __( 'כותרת', 'rashel-hanukkah' ),
+					'type'    => 'text',
+					'default' => 'עבודות של תלמידות',
+				),
+				'works_more' => array(
+					'label'   => __( 'כפתור להצגת תמונות נוספות', 'rashel-hanukkah' ),
+					'type'    => 'text',
+					'default' => 'הצג עוד',
+				),
+				'works_alt'  => array(
+					'label'   => __( 'תיאור לתמונה בלי טקסט חלופי (לקוראי מסך)', 'rashel-hanukkah' ),
+					'type'    => 'text',
+					'default' => 'עבודה של תלמידה',
+				),
+			),
+		),
 		'consult'      => array(
 			'label'  => __( 'ייעוץ וטופס', 'rashel-hanukkah' ),
 			'fields' => array(

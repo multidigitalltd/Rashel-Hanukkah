@@ -50,6 +50,7 @@ function rsh_audit_labels() {
 	return array(
 		'settings'  => __( 'שינוי הגדרות', 'rashel-hanukkah' ),
 		'content'   => __( 'שינוי טקסטים', 'rashel-hanukkah' ),
+		'media'     => __( 'שינוי תמונות', 'rashel-hanukkah' ),
 		'secret'    => __( 'עדכון מפתח סודי', 'rashel-hanukkah' ),
 		'view'      => __( 'צפייה בליד', 'rashel-hanukkah' ),
 		'status'    => __( 'שינוי סטטוס ליד', 'rashel-hanukkah' ),

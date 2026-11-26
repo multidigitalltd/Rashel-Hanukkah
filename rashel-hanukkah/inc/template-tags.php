@@ -388,25 +388,39 @@ function rsh_gallery_courses() {
 }
 
 /**
- * The three tiles of the opening collage. Each holds two photos that cross-fade.
+ * The three tiles of the opening collage. Each holds two media slots that cross-fade.
  *
  * @return array<int, array{0:string, 1:string}>
  */
 function rsh_mosaic() {
 	return array(
-		array( 'opening/o2.webp', 'opening/o1.webp' ),
-		array( 'opening/o3.webp', 'opening/o5.webp' ),
-		array( 'opening/o4.webp', 'opening/o2.webp' ),
+		array( 'open_2', 'open_1' ),
+		array( 'open_3', 'open_5' ),
+		array( 'open_4', 'open_2' ),
 	);
 }
 
 /**
- * Testimonial screenshots, in the order of the design: number, width, height.
+ * Testimonial screenshots: the ones chosen in the dashboard, otherwise the
+ * eleven of the design in its order (number, width, height).
  *
- * @return array<int, array{file:string, width:int, height:int}>
+ * @return array<int, array{id:int, file:string, width:int, height:int}>
  */
 function rsh_testimonials() {
 	$items = array();
+
+	foreach ( rsh_media_ids( 'testimonials' ) as $id ) {
+		$items[] = array(
+			'id'     => $id,
+			'file'   => '',
+			'width'  => 0,
+			'height' => 0,
+		);
+	}
+
+	if ( $items ) {
+		return $items;
+	}
 
 	foreach (
 		array(
@@ -424,6 +438,7 @@ function rsh_testimonials() {
 		) as $item
 	) {
 		$items[] = array(
+			'id'     => 0,
 			'file'   => sprintf( 'testimonials/t%02d.webp', $item[0] ),
 			'width'  => $item[1],
 			'height' => $item[2],

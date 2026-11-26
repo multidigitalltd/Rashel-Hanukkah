@@ -343,6 +343,81 @@
 	});
 
 	/* ------------------------------------------------------------------ */
+	/* Graduates' work: "show more"                                        */
+	/* ------------------------------------------------------------------ */
+
+	// Every photo is in the page. The grid starts with the first nine (six
+	// on a phone) and each press opens the next step; focus moves to the
+	// first photo that appeared, so a keyboard or screen-reader user lands
+	// on the new content.
+	(function works() {
+		var box = document.querySelector('[data-rsh-works]');
+		if (!box) {
+			return;
+		}
+
+		var grid = box.querySelector('[data-rsh-works-grid]');
+		var button = box.querySelector('[data-rsh-works-more]');
+		var items = Array.prototype.slice.call(grid.children);
+		var phone = window.matchMedia('(max-width: 959px)');
+
+		function shut() {
+			return items.filter(function (item) {
+				return window.getComputedStyle(item).display === 'none';
+			});
+		}
+
+		function update() {
+			if (button) {
+				button.parentNode.hidden = shut().length === 0;
+			}
+		}
+
+		function openNextBatch() {
+			var next = grid.querySelector('.is-shut');
+			if (!next) {
+				return;
+			}
+
+			var batch = next.getAttribute('data-rsh-batch');
+			items.forEach(function (item) {
+				if (item.getAttribute('data-rsh-batch') === batch) {
+					item.classList.remove('is-shut');
+				}
+			});
+		}
+
+		update();
+		phone.addEventListener('change', update);
+
+		if (!button) {
+			return;
+		}
+
+		button.addEventListener('click', function () {
+			var before = shut();
+			var firstStep = grid.classList.contains('is-first');
+
+			grid.classList.remove('is-first');
+			if (!firstStep || !phone.matches || before.length === shut().length) {
+				openNextBatch();
+			}
+
+			var after = shut();
+			var appeared = before.filter(function (item) {
+				return after.indexOf(item) === -1;
+			})[0];
+
+			update();
+
+			if (appeared) {
+				appeared.setAttribute('tabindex', '-1');
+				appeared.focus();
+			}
+		});
+	})();
+
+	/* ------------------------------------------------------------------ */
 	/* Testimonials carousel                                               */
 	/* ------------------------------------------------------------------ */
 

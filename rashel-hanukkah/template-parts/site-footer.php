@@ -15,10 +15,8 @@ $rsh_legal = rsh_legal_links();
 <footer class="rsh-footer">
 	<div class="rsh-wrap rsh-footer__row">
 		<?php
-		rsh_image(
-			'rashel-logo.png',
-			270,
-			191,
+		rsh_slot_image(
+			'logo',
 			array(
 				'class' => 'rsh-logo rsh-logo--sm',
 				'alt'   => get_bloginfo( 'name' ),

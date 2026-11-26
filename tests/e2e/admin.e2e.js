@@ -8,7 +8,7 @@
  */
 'use strict';
 
-const { BASE, chromium, check, axe, watch, signIn, finish } = require('./lib');
+const { BASE, chromium, check, axe, watch, signIn, acknowledgePrivacy, privacyVersion, finish } = require('./lib');
 
 const ADMIN = BASE + '/wp-admin/';
 const DASHBOARD = ADMIN + 'admin.php?page=rsh-dashboard';
@@ -172,6 +172,127 @@ async function frontHtml(browser) {
 	check('an export without its nonce is refused, even for an administrator', forged.status() === 403);
 	const forgedSave = await context.request.post(ADMIN + 'admin-post.php', { form: { action: 'rsh_save', rsh_tab: 'settings', 'rsh[phone]': '03-6660000' } });
 	check('a settings save without its nonce is refused', forgedSave.status() === 403 && !(await frontHtml(browser)).includes('03-6660000'));
+
+	/* ---------------------------------------------------------------- */
+	console.log('\nPhotos and galleries');
+	const MEDIA = DASHBOARD + '&tab=media';
+	await page.goto(MEDIA, { waitUntil: 'load' });
+	check('the media tab lists every replaceable file and both galleries', (await page.locator('[data-rsh-media]').count()) === 14 && (await page.locator('[data-rsh-list]').count()) === 2);
+	const mediaViolations = (await axe(page)).filter((violation) => /rsh-/.test(violation.target));
+	check('axe finds no violations in the media tab', mediaViolations.length === 0, JSON.stringify(mediaViolations));
+	check('with no photos chosen, the page has no graduates\' work section', !(await frontHtml(browser)).includes('rsh-works'));
+
+	// Twelve small photos, uploaded through the REST API as the administrator, and the ID of a page (not a photo).
+	const uploaded = await page.evaluate(async () => {
+		const nonce = await (await fetch('/wp-admin/admin-ajax.php?action=rest-nonce', { credentials: 'same-origin' })).text();
+		const send = async (blob, name, alt) => {
+			const body = new FormData();
+			body.append('file', blob, name);
+			if (alt) {
+				body.append('alt_text', alt);
+			}
+			const response = await fetch('/wp-json/wp/v2/media', { method: 'POST', credentials: 'same-origin', headers: { 'X-WP-Nonce': nonce }, body });
+			return (await response.json()).id;
+		};
+		const ids = [];
+		for (let n = 1; n <= 12; n++) {
+			const canvas = document.createElement('canvas');
+			canvas.width = 900;
+			canvas.height = 700;
+			const pen = canvas.getContext('2d');
+			pen.fillStyle = 'hsl(' + n * 29 + ', 55%, 62%)';
+			pen.fillRect(0, 0, 900, 700);
+			pen.fillStyle = '#3a2a2e';
+			pen.font = 'bold 240px sans-serif';
+			pen.fillText(String(n), 320, 440);
+			const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.8));
+			ids.push(await send(blob, 'work-' + String(n).padStart(2, '0') + '.jpg', n === 6 ? 'עוגיות מעוצבות של תלמידה' : ''));
+		}
+		const pages = await (await fetch('/wp-json/wp/v2/pages?per_page=1', { credentials: 'same-origin' })).json();
+		return { ids, page: pages[0].id };
+	});
+	check('the test photos were uploaded', uploaded.ids.length === 12 && uploaded.ids.every((id) => Number.isInteger(id)) && Number.isInteger(uploaded.page), JSON.stringify(uploaded));
+
+	await page.goto(MEDIA, { waitUntil: 'load' });
+	const works = page.locator('[data-rsh-list]').first();
+	await works.locator('[data-rsh-list-add]').click();
+	await page.click('.media-modal:visible #menu-item-browse');
+	await page.waitForSelector('.media-modal .attachments .attachment');
+	await page.locator('.media-modal .attachments .attachment').first().click();
+	await page.locator('.media-modal .attachments .attachment').nth(11).click({ modifiers: ['Shift'] });
+	await page.click('.media-modal .media-button-select');
+	check('photos chosen in the media library join the gallery list', (await works.locator('[data-rsh-list-item]').count()) === 12);
+
+	const listIds = () => works.locator('[data-rsh-list-id]').evaluateAll((inputs) => inputs.map((input) => Number(input.value)));
+	const firstOrder = await listIds();
+	await works.locator('[data-rsh-list-item]').first().locator('[data-rsh-list-down]').click();
+	const moved = await listIds();
+	check('a photo can be moved with a button, and focus stays on that button', moved[0] === firstOrder[1] && moved[1] === firstOrder[0] && await page.evaluate(() => document.activeElement.hasAttribute('data-rsh-list-down')));
+	await works.locator('[data-rsh-list-item]').last().locator('[data-rsh-list-remove]').click();
+	const kept = await listIds();
+	check('and removed', kept.length === 11);
+
+	const portrait = page.locator('[data-rsh-media]:has(#rsh-portrait)');
+	await portrait.locator('[data-rsh-media-pick]').click();
+	await page.click('.media-modal:visible #menu-item-browse');
+	await page.waitForSelector('.media-modal:visible .attachments .attachment');
+	await page.locator('.media-modal:visible .attachments .attachment').first().click();
+	await page.click('.media-modal:visible .media-button-select');
+	const portraitId = Number(await page.inputValue('#rsh-portrait'));
+	check('a single photo can be replaced from the media library', uploaded.ids.includes(portraitId) && (await portrait.locator('[data-rsh-media-reset]').isVisible()));
+	await save(page);
+	check('the media form saves', (await page.locator('.notice-success').count()) === 1 && (await listIds()).join() === kept.join());
+
+	const withWorks = await frontHtml(browser);
+	const worksOrder = [...withWorks.matchAll(/<li class="rsh-work[^"]*" data-rsh-batch="\d">\s*<img[^>]+src="[^"]*\/work-(\d+)[^"]*"/g)].map((match) => Number(match[1]));
+	const expectedOrder = kept.map((id) => uploaded.ids.indexOf(id) + 1);
+	check('the gallery reaches the page in the saved order', worksOrder.join() === expectedOrder.join(), worksOrder.join() + ' / ' + expectedOrder.join());
+	check('a photo\'s alt text comes from the media library, with a fallback for the rest', withWorks.includes('alt="עוגיות מעוצבות של תלמידה"') && withWorks.includes('alt="עבודה של תלמידה"'));
+	check('the replaced portrait is served from the uploads folder', /class="rsh-about"[\s\S]{0,1500}wp-content\/uploads/.test(withWorks));
+
+	await page.evaluate((id) => {
+		document.getElementById('rsh-portrait').value = String(id);
+		const forged = document.createElement('input');
+		forged.type = 'hidden';
+		forged.name = 'rsh[works][]';
+		forged.value = '999999';
+		document.querySelector('.rsh-admin__form').appendChild(forged);
+	}, uploaded.page);
+	await save(page);
+	check('a file that is not a photo, and an ID that does not exist, are refused; the rest stays', (await page.locator('.notice-warning').count()) === 1 && Number(await page.inputValue('#rsh-portrait')) === portraitId && (await listIds()).join() === kept.join());
+
+	await page.locator('[data-rsh-media]:has(#rsh-portrait) [data-rsh-media-reset]').click();
+	await save(page);
+	check('"back to the original file" restores the bundled photo', (await frontHtml(browser)).includes('rashel-portrait.webp'));
+	check('media changes are in the audit log', (await (await context.request.get(DASHBOARD + '&tab=log')).text()).includes('שינוי תמונות'));
+
+	const gallery = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+	await acknowledgePrivacy(gallery, await privacyVersion(browser));
+	const wide = await gallery.newPage();
+	await wide.goto(BASE + '/', { waitUntil: 'load' });
+	const visible = (target) => target.locator('.rsh-work').evaluateAll((items) => items.filter((item) => getComputedStyle(item).display !== 'none').length);
+	await wide.locator('.rsh-works').scrollIntoViewIfNeeded();
+	check('the section sits right after the testimonials, with nine photos and "show more"', await wide.evaluate(() => document.querySelector('.rsh-proof').nextElementSibling.classList.contains('rsh-works')) && (await visible(wide)) === 9 && (await wide.locator('[data-rsh-works-more]').isVisible()));
+	const galleryViolations = await axe(wide);
+	check('axe finds no violations with the gallery on the page', galleryViolations.length === 0, JSON.stringify(galleryViolations));
+	await wide.click('[data-rsh-works-more]');
+	check('"show more" opens the rest, moves focus to the first new photo and then leaves', (await visible(wide)) === 11 && await wide.evaluate(() => document.activeElement === document.querySelectorAll('.rsh-work')[9]) && !(await wide.locator('[data-rsh-works-more]').isVisible()));
+	await wide.setViewportSize({ width: 375, height: 780 });
+	await wide.reload({ waitUntil: 'load' });
+	await wide.locator('.rsh-works').scrollIntoViewIfNeeded();
+	check('on a phone the grid starts with six photos', (await visible(wide)) === 6);
+	await wide.click('[data-rsh-works-more]');
+	const second = await visible(wide);
+	await wide.click('[data-rsh-works-more]');
+	check('and opens in two more steps', second === 9 && (await visible(wide)) === 11 && !(await wide.locator('[data-rsh-works-more]').isVisible()));
+	check('the grid never makes the phone page scroll sideways', await wide.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
+	await gallery.close();
+
+	const plainGallery = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 1280, height: 900 } });
+	const still = await plainGallery.newPage();
+	await still.goto(BASE + '/', { waitUntil: 'load' });
+	check('without JavaScript every photo is shown and there is no "show more"', (await still.locator('.rsh-work:visible').count()) === 11 && (await still.locator('[data-rsh-works-more]:visible').count()) === 0);
+	await plainGallery.close();
 	await context.close();
 
 	/* ---------------------------------------------------------------- */
@@ -185,6 +306,8 @@ async function frontHtml(browser) {
 	check('the export is refused even with a nonce taken from an administrator', (await editorContext.request.get(exportUrl)).status() === 403);
 	const editorSave = await editorContext.request.post(ADMIN + 'admin-post.php', { form: { action: 'rsh_save', rsh_tab: 'settings', 'rsh[phone]': '03-7770000' } });
 	check('a settings save is refused', editorSave.status() === 403);
+	const editorMedia = await editorContext.request.post(ADMIN + 'admin-post.php', { form: { action: 'rsh_save', rsh_tab: 'media', 'rsh[portrait]': '1' } });
+	check('and so is a media save', editorMedia.status() === 403);
 	const types = await editorContext.request.get(BASE + '/wp-json/wp/v2/types');
 	check('leads and courses are not exposed over the REST API', types.status() === 200 && !(await types.text()).includes('rsh_'));
 	await editorContext.close();

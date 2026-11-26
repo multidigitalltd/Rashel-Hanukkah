@@ -19,4 +19,5 @@ get_template_part( 'template-parts/sections/gallery' );
 get_template_part( 'template-parts/sections/about' );
 rsh_ticker( 'right' );
 get_template_part( 'template-parts/sections/testimonials' );
+get_template_part( 'template-parts/sections/works' );
 get_template_part( 'template-parts/sections/consult' );

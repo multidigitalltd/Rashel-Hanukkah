@@ -20,10 +20,8 @@ $rsh_questions = array( 'hook_q1', 'hook_q2', 'hook_q3' );
 <section class="rsh-open">
 	<div class="rsh-open__logo">
 		<?php
-		rsh_image(
-			'rashel-logo.png',
-			270,
-			191,
+		rsh_slot_image(
+			'logo',
 			array(
 				'class'         => 'rsh-logo rsh-logo--light',
 				'alt'           => get_bloginfo( 'name' ),
@@ -65,10 +63,8 @@ $rsh_questions = array( 'hook_q1', 'hook_q2', 'hook_q3' );
 			<div class="rsh-tile rsh-tile--<?php echo esc_attr( (string) ( $rsh_n + 1 ) ); ?>" data-rsh-tile aria-hidden="true">
 				<?php
 				// The first photo paints at once (it is the largest thing on the first screen); the second arrives after load.
-				rsh_image(
+				rsh_slot_image(
 					$rsh_pair[0],
-					1200,
-					800,
 					array(
 						'class'         => 'rsh-tile__img is-on',
 						'loading'       => 'eager',
@@ -77,7 +73,7 @@ $rsh_questions = array( 'hook_q1', 'hook_q2', 'hook_q3' );
 					)
 				);
 				?>
-				<img class="rsh-tile__img" alt="" width="1200" height="800" decoding="async" data-rsh-src="<?php echo esc_url( rsh_asset( 'assets/img/' . $rsh_pair[1] ) ); ?>">
+				<img class="rsh-tile__img" alt="" width="1200" height="800" decoding="async" data-rsh-src="<?php echo esc_url( rsh_slot_url( $rsh_pair[1] ) ); ?>">
 			</div>
 		<?php endforeach; ?>
 

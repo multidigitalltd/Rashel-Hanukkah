@@ -53,7 +53,7 @@ function rsh_seo_head() {
 	$title       = wp_get_document_title();
 	$description = rsh_seo_description();
 	$url         = is_singular() ? (string) get_permalink() : home_url( '/' );
-	$image       = rsh_asset( 'assets/img/og.jpg' );
+	$image       = rsh_slot_url( 'og' );
 
 	if ( '' !== $description ) {
 		printf( '<meta name="description" content="%s">' . "\n", esc_attr( $description ) );
@@ -79,7 +79,7 @@ function rsh_seo_head() {
 		'@type'     => 'EducationalOrganization',
 		'name'      => get_bloginfo( 'name' ),
 		'url'       => home_url( '/' ),
-		'logo'      => rsh_asset( 'assets/img/rashel-logo.png' ),
+		'logo'      => rsh_slot_url( 'logo' ),
 		'telephone' => rsh_phone(),
 	);
 

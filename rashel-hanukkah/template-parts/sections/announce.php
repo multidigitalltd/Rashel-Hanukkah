@@ -20,10 +20,8 @@ $rsh_line2 = is_array( $rsh_line2 ) ? $rsh_line2 : array();
 ?>
 <section id="announce" class="rsh-announce">
 	<?php
-	rsh_image(
-		'announce-bg.webp',
-		1600,
-		1067,
+	rsh_slot_image(
+		'announce_bg',
 		array(
 			'class'  => 'rsh-announce__bg',
 			'srcset' => rsh_asset( 'assets/img/announce-bg-800.webp' ) . ' 800w, ' . rsh_asset( 'assets/img/announce-bg.webp' ) . ' 1600w',
