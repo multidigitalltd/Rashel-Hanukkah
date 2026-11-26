@@ -60,6 +60,10 @@ $rsh_questions = array( 'hook_q1', 'hook_q2', 'hook_q3' );
 		<?php rsh_ticker( 'vertical' ); ?>
 
 		<?php foreach ( rsh_mosaic() as $rsh_n => $rsh_pair ) : ?>
+			<?php
+			// The photos are cropped to their tile, so the tall first tile needs a wider file than its own width.
+			$rsh_sizes = 0 === $rsh_n ? '(min-width: 960px) 80vw, 110vw' : '(min-width: 960px) 40vw, 60vw';
+			?>
 			<div class="rsh-tile rsh-tile--<?php echo esc_attr( (string) ( $rsh_n + 1 ) ); ?>" data-rsh-tile aria-hidden="true">
 				<?php
 				// The first photo paints at once (it is the largest thing on the first screen); the second arrives after load.
@@ -69,11 +73,11 @@ $rsh_questions = array( 'hook_q1', 'hook_q2', 'hook_q3' );
 						'class'         => 'rsh-tile__img is-on',
 						'loading'       => 'eager',
 						'fetchpriority' => 0 === $rsh_n ? 'high' : false,
-						'sizes'         => '(min-width: 960px) 26vw, 50vw',
+						'sizes'         => $rsh_sizes,
 					)
 				);
 				?>
-				<img class="rsh-tile__img" alt="" width="1200" height="800" decoding="async" data-rsh-src="<?php echo esc_url( rsh_slot_url( $rsh_pair[1] ) ); ?>">
+				<img class="rsh-tile__img" alt="" width="1200" height="800" decoding="async" sizes="<?php echo esc_attr( $rsh_sizes ); ?>" data-rsh-src="<?php echo esc_url( rsh_slot_url( $rsh_pair[1] ) ); ?>" data-rsh-srcset="<?php echo esc_attr( rsh_slot_srcset( $rsh_pair[1] ) ); ?>">
 			</div>
 		<?php endforeach; ?>
 

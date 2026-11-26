@@ -216,10 +216,15 @@
 				return;
 			}
 			loaded = true;
-			// The second photo of each tile arrives only now, after the first screen has painted.
+			// The second photo of each tile arrives only now, well after the first screen has painted.
 			each('[data-rsh-src]', function (image) {
+				var srcset = image.getAttribute('data-rsh-srcset');
+				if (srcset) {
+					image.srcset = srcset;
+				}
 				image.src = image.getAttribute('data-rsh-src');
 				image.removeAttribute('data-rsh-src');
+				image.removeAttribute('data-rsh-srcset');
 			});
 		}
 
@@ -240,10 +245,16 @@
 			});
 		}
 
+		// The second photos are not needed before the first swap, so they wait
+		// two seconds after the page has loaded and stay out of its way.
+		function later() {
+			window.setTimeout(load, 2000);
+		}
+
 		if (document.readyState === 'complete') {
-			load();
+			later();
 		} else {
-			window.addEventListener('load', load);
+			window.addEventListener('load', later);
 		}
 		window.setInterval(swap, 4500);
 	})();
@@ -488,7 +499,8 @@
 			index = nearest;
 		}, { passive: true });
 
-		progress();
+		// No measuring at start-up: it would force the layout of a section far
+		// below the fold. The bar's first width comes from the stylesheet.
 	})();
 
 	/* ------------------------------------------------------------------ */
@@ -663,6 +675,32 @@
 	if (holder && motion()) {
 		fallingConfetti(holder);
 	}
+
+	// Video posters load when their video comes near the viewport.
+	(function posters() {
+		function show(video) {
+			video.poster = video.getAttribute('data-rsh-poster');
+			video.removeAttribute('data-rsh-poster');
+		}
+
+		if (!('IntersectionObserver' in window)) {
+			each('[data-rsh-poster]', show);
+			return;
+		}
+
+		var near = new IntersectionObserver(function (entries) {
+			entries.forEach(function (entry) {
+				if (entry.isIntersecting) {
+					show(entry.target);
+					near.unobserve(entry.target);
+				}
+			});
+		}, { rootMargin: '800px 0px' });
+
+		each('[data-rsh-poster]', function (video) {
+			near.observe(video);
+		});
+	})();
 
 	// Observed even while motion is off, so content is already revealed if the visitor turns it back on.
 	if (!('IntersectionObserver' in window)) {

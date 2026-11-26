@@ -83,6 +83,21 @@ add_filter( 'pre_wp_mail', static function ( \$short, array \$atts ) {
 MAIL
 
 # No update checks: they need WordPress.org, which a sandbox may not reach.
+# PHP's built-in server sends pages uncompressed; every production server
+# compresses them, so the performance budget is measured the same way.
+cat > "$wp/wp-content/mu-plugins/e2e-gzip.php" <<'GZIP'
+<?php
+add_action(
+	'template_redirect',
+	static function () {
+		if ( ! headers_sent() && extension_loaded( 'zlib' ) ) {
+			ob_start( 'ob_gzhandler' );
+		}
+	},
+	0
+);
+GZIP
+
 cat > "$wp/wp-content/mu-plugins/e2e-no-updates.php" <<'NOUPDATES'
 <?php
 add_action(

@@ -15,7 +15,15 @@ $rsh_benefits = rsh_text_lines( 'benefits' );
 <section class="rsh-benefits" aria-labelledby="rsh-benefits-ttl">
 	<div class="rsh-wrap rsh-benefits__in">
 		<div class="rsh-benefits__photo" data-rsh-reveal>
-			<?php rsh_slot_image( 'benefits', array( 'alt' => rsh_text( 'benefits_alt' ) ) ); ?>
+			<?php
+			rsh_slot_image(
+				'benefits',
+				array(
+					'alt'   => rsh_text( 'benefits_alt' ),
+					'sizes' => '(min-width: 960px) 520px, 92vw',
+				)
+			);
+			?>
 		</div>
 
 		<div class="rsh-benefits__text">

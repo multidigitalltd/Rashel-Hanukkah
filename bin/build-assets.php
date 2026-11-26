@@ -116,4 +116,35 @@ foreach ( $rsh_jobs as $rsh_job ) {
 	);
 }
 
+// The landing page loads its scripts and its styles as one file each: two requests instead of six.
+$rsh_bundles = array(
+	'js'  => array( 'a11y', 'privacy', 'landing', 'forms' ),
+	'css' => array( 'main', 'landing' ),
+);
+
+foreach ( $rsh_bundles as $rsh_type => $rsh_parts ) {
+	$rsh_bundle = '';
+
+	foreach ( $rsh_parts as $rsh_part ) {
+		$rsh_code = file_get_contents( $rsh_theme . '/assets/' . $rsh_type . '/' . $rsh_part . '.min.' . $rsh_type );
+
+		if ( false === $rsh_code ) {
+			fwrite( STDERR, "cannot read {$rsh_part}.min.{$rsh_type} for the bundle\n" );
+			$rsh_failed = true;
+			continue;
+		}
+
+		$rsh_bundle .= rtrim( $rsh_code ) . "\n";
+	}
+
+	$rsh_name = 'landing-bundle.min.' . $rsh_type;
+
+	if ( false === file_put_contents( $rsh_theme . '/assets/' . $rsh_type . '/' . $rsh_name, $rsh_bundle ) ) {
+		fwrite( STDERR, "cannot write {$rsh_name}\n" );
+		$rsh_failed = true;
+	}
+
+	printf( "%-22s %7d bytes\n", $rsh_name, strlen( $rsh_bundle ) );
+}
+
 exit( $rsh_failed ? 1 : 0 );

@@ -2,6 +2,14 @@
 
 All notable changes to this project are listed here. Versions follow [Semantic Versioning](https://semver.org/); the theme version lives in `rashel-hanukkah/style.css` and `RSH_VERSION` and the two are bumped together.
 
+## 2.1.1: 2026-11-26
+
+### Changed
+
+- On a phone the opening questions and the photo collage share the first screen: the questions on top, the photos in the lower 43% with the discount badge fully inside.
+- The photos are now part of the first screen on a phone, so the page was made lighter to keep LCP inside the budget: smaller copies of the opening and benefits photos through `srcset`, the landing page's scripts and styles each served as one bundled file, the Oscar and Barlev fonts converted to WOFF2 and Afek subset to Hebrew, basic Latin and punctuation, a smaller logo file, video posters loaded when the videos come near the viewport, the collage's second photos requested two seconds after load, and no layout measuring at start-up in the testimonial carousel.
+- The end-to-end site compresses pages, as every production server does.
+
 ## 2.1.0: 2026-11-26
 
 ### Added

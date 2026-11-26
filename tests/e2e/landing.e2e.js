@@ -105,6 +105,8 @@ function postLead(request, fields) {
 	check('each card shows the coupon code and offers its syllabus', (await page.locator('.rsh-card .rsh-coupon__code').allTextContents()).filter((code) => code.trim() === 'H50').length === 11 && (await page.locator('.rsh-card__syl').count()) === 11);
 	check('the two courses with new photos use them', await page.evaluate(() => ['dessert-cups', 'modern-desserts'].every((name) => !!document.querySelector('.rsh-card__img img[src*="' + name + '.webp"]'))));
 
+	// The collage's second photos are requested two seconds after the page has loaded.
+	await page.waitForFunction(() => !document.querySelector('[data-rsh-src]'), null, { timeout: 8000 }).catch(() => {});
 	const broken = await page.evaluate(async () => {
 		const images = Array.from(document.images);
 		images.forEach((image) => { image.loading = 'eager'; });

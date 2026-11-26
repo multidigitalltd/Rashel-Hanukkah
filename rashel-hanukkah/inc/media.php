@@ -25,7 +25,7 @@ const RSH_WORKS_BATCH = 9;
  * The single slots: key => label, group, type, bundled file, intrinsic size
  * of the bundled file, and the image size used for a replacement.
  *
- * @return array<string, array{label:string, group:string, type:string, file:string, width:int, height:int, size:string, help?:string}>
+ * @return array<string, array{label:string, group:string, type:string, file:string, width:int, height:int, size:string, help?:string, widths?:int[]}>
  */
 function rsh_media_slots() {
 	$slots = array(
@@ -62,6 +62,7 @@ function rsh_media_slots() {
 			'width'  => 1100,
 			'height' => 733,
 			'size'   => 'large',
+			'widths' => array( 720 ),
 		),
 		'portrait'    => array(
 			'label'  => __( 'התמונה של ראשל', 'rashel-hanukkah' ),
@@ -82,6 +83,7 @@ function rsh_media_slots() {
 			'width'  => 1200,
 			'height' => 800,
 			'size'   => 'large',
+			'widths' => array( 480, 600, 900 ),
 		);
 	}
 
@@ -239,6 +241,41 @@ function rsh_slot_url( $key ) {
 }
 
 /**
+ * The srcset of a slot's image: WordPress's own for a replacement, and the
+ * smaller copies shipped beside a bundled file ("name-600.webp") when the
+ * slot declares them. Empty when there is only one file.
+ *
+ * @param string $key Slot key.
+ * @return string
+ */
+function rsh_slot_srcset( $key ) {
+	$slots = rsh_media_slots();
+
+	if ( ! isset( $slots[ $key ] ) ) {
+		return '';
+	}
+
+	$slot = $slots[ $key ];
+	$id   = rsh_media_id( $key );
+
+	if ( $id ) {
+		return (string) wp_get_attachment_image_srcset( $id, $slot['size'] );
+	}
+
+	$parts = array();
+
+	foreach ( $slot['widths'] ?? array() as $width ) {
+		$parts[] = rsh_asset( (string) preg_replace( '/\.(\w+)$/', '-' . $width . '.$1', $slot['file'] ) ) . ' ' . $width . 'w';
+	}
+
+	if ( $parts ) {
+		$parts[] = rsh_asset( $slot['file'] ) . ' ' . $slot['width'] . 'w';
+	}
+
+	return implode( ', ', $parts );
+}
+
+/**
  * Print a slot's image. A replacement gets WordPress's own srcset; the
  * bundled file keeps the attributes the template passed.
  *
@@ -257,6 +294,12 @@ function rsh_slot_image( $key, array $attrs = array() ) {
 	$id   = rsh_media_id( $key );
 
 	if ( ! $id ) {
+		$srcset = rsh_slot_srcset( $key );
+
+		if ( '' !== $srcset && ! isset( $attrs['srcset'] ) ) {
+			$attrs['srcset'] = $srcset;
+		}
+
 		rsh_image( (string) preg_replace( '#^assets/img/#', '', $slot['file'] ), $slot['width'], $slot['height'], $attrs );
 
 		return;

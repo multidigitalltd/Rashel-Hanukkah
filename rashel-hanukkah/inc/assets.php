@@ -105,21 +105,42 @@ function rsh_needs_block_styles() {
  * @return void
  */
 function rsh_enqueue_assets() {
-	rsh_enqueue_style( 'rsh-main', 'assets/css/main.css' );
+	/*
+	 * The landing page gets its four scripts as one built file and its two
+	 * stylesheets as another (two requests instead of six). Each script looks
+	 * for its own markup and does nothing without it, so the bundle is safe
+	 * when the toolbar is switched off. With SCRIPT_DEBUG, or before the build
+	 * has run, the sources load one by one.
+	 */
+	$bundle  = 'assets/js/landing-bundle.min.js';
+	$styles  = 'assets/css/landing-bundle.min.css';
+	$bundled = rsh_is_landing() && ! ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) && file_exists( RSH_DIR . '/' . $bundle ) && file_exists( RSH_DIR . '/' . $styles );
 
-	if ( rsh_a11y_enabled() ) {
-		rsh_enqueue_script( 'rsh-a11y', 'assets/js/a11y.js' );
+	if ( $bundled ) {
+		rsh_enqueue_style( 'rsh-main', $styles );
+	} else {
+		rsh_enqueue_style( 'rsh-main', 'assets/css/main.css' );
 	}
 
-	rsh_enqueue_script( 'rsh-privacy', 'assets/js/privacy.js' );
+	if ( ! $bundled ) {
+		if ( rsh_a11y_enabled() ) {
+			rsh_enqueue_script( 'rsh-a11y', 'assets/js/a11y.js' );
+		}
+
+		rsh_enqueue_script( 'rsh-privacy', 'assets/js/privacy.js' );
+	}
 
 	if ( ! rsh_is_landing() ) {
 		return;
 	}
 
-	rsh_enqueue_style( 'rsh-landing', 'assets/css/landing.css', array( 'rsh-main' ) );
-	rsh_enqueue_script( 'rsh-landing', 'assets/js/landing.js' );
-	rsh_enqueue_script( 'rsh-forms', 'assets/js/forms.js' );
+	if ( $bundled ) {
+		rsh_enqueue_script( 'rsh-landing', $bundle );
+	} else {
+		rsh_enqueue_style( 'rsh-landing', 'assets/css/landing.css', array( 'rsh-main' ) );
+		rsh_enqueue_script( 'rsh-landing', 'assets/js/landing.js' );
+		rsh_enqueue_script( 'rsh-forms', 'assets/js/forms.js' );
+	}
 
 	// The deadline is public; it is the same number for every visitor, so the page stays cacheable.
 	wp_add_inline_script(
@@ -134,7 +155,7 @@ function rsh_enqueue_assets() {
 	 * stale, so the script pulls a fresh one from the REST route on first use.
 	 */
 	wp_add_inline_script(
-		'rsh-forms',
+		$bundled ? 'rsh-landing' : 'rsh-forms',
 		'window.rshForms=' . wp_json_encode(
 			array(
 				'submit'  => esc_url_raw( rest_url( 'rashel/v1/lead' ) ),
@@ -165,8 +186,8 @@ add_action( 'wp_enqueue_scripts', 'rsh_enqueue_assets' );
 function rsh_preload_fonts() {
 	$fonts = rsh_is_landing()
 		? array(
-			'oscar-regular.otf' => 'font/otf',
-			'afek-black.woff2'  => 'font/woff2',
+			'oscar-regular.woff2' => 'font/woff2',
+			'afek-black.woff2'    => 'font/woff2',
 		)
 		: array( 'afek-regular.woff2' => 'font/woff2' );
 

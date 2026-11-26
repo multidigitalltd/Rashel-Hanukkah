@@ -3,6 +3,10 @@
  * Testimonials: the quote, two video testimonials and a carousel of the
  * messages graduates sent.
  *
+ * A video's poster is set by landing.js when the video comes near the
+ * viewport, so two photos far down the page do not compete with the first
+ * screen. Without JavaScript the browser shows the video's first frame.
+ *
  * The carousel is a plain horizontal scroller: it works by touch, by trackpad
  * and from the keyboard on its own, and never moves by itself. The two arrow
  * buttons and the progress bar are an enhancement (landing.js).
@@ -31,7 +35,7 @@ $rsh_videos = array(
 				<?php $rsh_captions = rsh_captions_url( $rsh_video ); ?>
 				<div class="rsh-video" data-rsh-reveal>
 					<video controls playsinline preload="metadata" width="<?php echo esc_attr( (string) $rsh_info[1] ); ?>" height="480"
-						poster="<?php echo esc_url( rsh_slot_url( 'poster_' . $rsh_video ) ); ?>"
+						data-rsh-poster="<?php echo esc_url( rsh_slot_url( 'poster_' . $rsh_video ) ); ?>"
 						aria-label="<?php echo esc_attr( rsh_text( $rsh_info[0] ) ); ?>">
 						<source src="<?php echo esc_url( rsh_slot_url( 'video_' . $rsh_video ) ); ?>" type="video/mp4">
 						<?php if ( '' !== $rsh_captions ) : ?>

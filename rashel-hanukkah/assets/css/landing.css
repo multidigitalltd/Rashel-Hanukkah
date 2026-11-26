@@ -535,12 +535,25 @@ html:not(.rsh-js) .rsh-card__syl { display: none; }
   .rsh-tabs__tab { padding: 0 20px; font-size: 1rem; }
 }
 
-@media (max-width: 480px) {
-  .rsh-open__text { padding-inline: 20px; }
-  .rsh-open__collage { padding: 16px; padding-right: 68px; gap: 12px; }
-  .rsh-ticker--vertical { width: 52px; }
+/* Phone: the questions and the photos share the first screen. */
+@media (max-width: 720px) {
+  .rsh-open { min-height: 100vh; min-height: 100svh; grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
+  .rsh-open__logo { padding: 18px 20px; }
+  .rsh-open__text { padding: 92px 20px 22px; gap: 18px; }
+  .rsh-motion .rsh-hook { min-height: 0; }
+  .rsh-hook__q { font-size: 1.75rem; line-height: 1.2; }
+  .rsh-motion .rsh-hook__nav { justify-content: center; }
+  .rsh-open__next { position: absolute; left: 20px; bottom: 18px; width: 44px; height: 44px; font-size: 1.125rem; }
+  .rsh-open__collage { min-height: 0; height: 43vh; height: 43svh; padding: 12px; padding-right: 60px; gap: 10px; }
+  .rsh-tile { border-radius: 20px; }
+  .rsh-ticker--vertical { width: 48px; }
   .rsh-ticker--vertical .rsh-ticker__track { font-size: 1.375rem; }
+  .rsh-badge--open { width: 100px; bottom: 26px; left: 22px; }
+}
+
+@media (max-width: 480px) {
   .rsh-badge { width: 128px; }
+  .rsh-badge--open { width: 100px; }
   .rsh-cta--lg { padding-inline: 24px; font-size: 1.0625rem; }
   .rsh-cd__box { min-width: 62px; }
   .rsh-cd--bar { gap: 6px; }

@@ -9,13 +9,13 @@
    1. FONTS (self-hosted, licensed to the client)
    Oscar: headings. Afek: body and interface. Barlev: the signature.
    ============================================================ */
-@font-face { font-family: 'Oscar'; src: url('../fonts/oscar-regular.otf') format('opentype'); font-weight: 400 900; font-display: swap; }
+@font-face { font-family: 'Oscar'; src: url('../fonts/oscar-regular.woff2') format('woff2'); font-weight: 400 900; font-display: swap; }
 @font-face { font-family: 'Afek'; src: url('../fonts/afek-regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
 @font-face { font-family: 'Afek'; src: url('../fonts/afek-medium.woff2') format('woff2'); font-weight: 500; font-display: swap; }
 @font-face { font-family: 'Afek'; src: url('../fonts/afek-bold.woff2') format('woff2'); font-weight: 700; font-display: swap; }
 @font-face { font-family: 'Afek'; src: url('../fonts/afek-black.woff2') format('woff2'); font-weight: 900; font-display: swap; }
-@font-face { font-family: 'Barlev'; src: url('../fonts/barlev-regular.woff') format('woff'); font-weight: 400; font-display: swap; }
-@font-face { font-family: 'Barlev'; src: url('../fonts/barlev-bold.woff') format('woff'); font-weight: 700; font-display: swap; }
+@font-face { font-family: 'Barlev'; src: url('../fonts/barlev-regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Barlev'; src: url('../fonts/barlev-bold.woff2') format('woff2'); font-weight: 700; font-display: swap; }
 
 /* ============================================================
    2. TOKENS

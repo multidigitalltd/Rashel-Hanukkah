@@ -64,7 +64,8 @@ The end-to-end scripts build on each other and share one rate-limit window: run 
 
 - The Hebrew copy is the client's approved wording. Change defaults in `inc/content.php` only when the client asks; `tests/e2e/landing.e2e.js` fails when a sentence of the design is missing.
 - Releases: bump `Version` in `style.css` and `RSH_VERSION` in `functions.php` together, and add a `CHANGELOG.md` entry.
-- After editing a file under `assets/css` or `assets/js`, run `php bin/build-assets.php` and commit the `.min` files.
+- After editing a file under `assets/css` or `assets/js`, run `php bin/build-assets.php` and commit the `.min` files. The script also writes `landing-bundle.min.js` and `landing-bundle.min.css`, the single files the landing page loads.
+- On a phone the opening photos are the LCP element. Keep the first screen light: a new bundled photo there needs smaller copies (`widths` in `rsh_media_slots()`), and nothing should measure layout at start-up.
 - The landing page must stay cacheable as one HTML for everyone: no nonce the script depends on, no per-visitor output, no cookie for guests. The form fetches its nonce over REST; the privacy notice decides on the client.
 - Small white text never sits on the base mauve or the base course colours; use `--rsh-mauve-strong` and the `strong` shade from `rsh_course_color()` (unit-tested for 4.5:1).
 - The long sections below the fold use `content-visibility: auto`; a test that measures them must scroll them into view first.
